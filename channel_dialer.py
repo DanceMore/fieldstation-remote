@@ -18,14 +18,14 @@ DISPLAY_DELAY = 0.4
 
 # Easter egg configurations
 EASTER_EGGS = {
-    "911": ("🚨 EMERGENCY!", "911!", lambda: send_key_to_mpv('c')),
-    "666": ("😈 DEMON MODE!", "666", None),
-    "420": ("🎉 PARTY TIME!", "420", None),
-    "777": ("🍀 LUCKY!", "777", None),
-    "1234": ("🧪 TEST MODE!", "TEST", None),
-    "0000": ("🔄 RESET!", "RST", "reset"),
-    "404": ("💥 ERROR!", "404", None),
-    "80085": ("😄 FUN TIME!", "BOOB", None),
+    "911": ("🚨 EMERGENCY!", "911!", lambda self: send_key_to_mpv('c')),
+    "666": ("😈 DEMON MODE!", "666", lambda self: None),
+    "420": ("🎉 PARTY TIME!", "420", lambda self: None),
+    "777": ("🍀 LUCKY!", "777", lambda self: None),
+    "1234": ("🧪 TEST MODE!", "TEST", lambda self: None),
+    "0000": ("🔄 RESET!", "RST", lambda self: self._reset_to_first_channel()),
+    "404": ("💥 ERROR!", "404", lambda self: self._show_error("404")),
+    "80085": ("😄 FUN TIME!", "BOOB", lambda self: None),
 }
 
 def safe_execute(func, error_msg="Operation failed"):
@@ -116,15 +116,14 @@ class ChannelDialer:
 
         message, display_text, action = EASTER_EGGS[sequence]
         print(f"🎯 {message}")
-
         self._update_display(display_text, is_text=True)
 
-        if action == "reset":
-            self._reset_to_first_channel()
-        elif callable(action):
-            action()
+        if callable(action):
+            try:
+                action(self)
+            except Exception as e:
+                print(f"⚠️ Easter egg action failed: {e}")
 
-        # Brief pause then show current channel
         time.sleep(1)
         self._update_display(self.current_channel)
         return True
