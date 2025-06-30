@@ -179,9 +179,6 @@ class IRRemoteMapper:
             time.sleep(0.4)
             self.display_controller.display_text("BOOT")
             time.sleep(2.0)
-            self.display_controller.display_text("redY")
-            time.sleep(1.5)
-            self.display_controller.display_number(self.channel_dialer.current_channel)
     
     def _handle_channel_up(self):
         print("📺 Channel UP!")
@@ -322,8 +319,11 @@ class IRRemoteMapper:
             print(f"Valid channels: {VALID_CHANNELS}")
             print(f"Current channel: {self.channel_dialer.current_channel}")
             print(f"Channel digit timeout: {self.args.digit_timeout}s")
-            if self.display_controller and self.display_controller.display_serial:
-                print(f"📟 Display: {self.args.display_device} @ {self.args.display_baud} baud")
+           if self.display_controller and self.display_controller.display_serial:
+               print(f"📟 Display: {self.args.display_device} @ {self.args.display_baud} baud")
+               self.display_controller.display_text("redY")
+               time.sleep(1.5)
+               self.display_controller.display_number(self.channel_dialer.current_channel)
 
             while True:
                 line = self.flipper.readline().decode('utf-8').strip()
