@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-IR Remote Mapper - Enhanced with channel dialing, Easter eggs, pause-based entry, and 7-segment display
+IR Remote Mapper - Core Library
 Maps IR signals to standardized events with intelligent digit queue system and display control
 """
 
 import serial
 import sys
 import time
-import argparse
 import re
 import json
 import os
@@ -387,10 +386,6 @@ class ChannelDialer:
         except Exception as e:
             print(f"Fun mode error: {e}")
 
-# Global instances
-display_controller = None
-channel_dialer = None
-
 def write_json_to_socket(data):
     try:
         json_str = json.dumps(data)
@@ -409,149 +404,6 @@ def send_key_to_mpv(key):
         subprocess.run(['xdotool', 'key', '--window', window_id, key], env={'DISPLAY': ':0'})
     except Exception as e:
         print(f"Failed to send key '{key}' to mpv: {e}")
-
-def CHANNEL_UP():
-    print("📺 Channel UP!")
-    channel_dialer.clear_queue()  # Clear any pending digits
-    channel_dialer.channel_up()
-
-def CHANNEL_DOWN():
-    print("📺 Channel DOWN!")
-    channel_dialer.clear_queue()  # Clear any pending digits
-    channel_dialer.channel_down()
-
-def EFFECT_NEXT():
-    print("✨ Next effect!")
-    if display_controller:
-        display_controller.display_text("EFuP")
-        # Use a timer to return to channel display after brief show
-        threading.Timer(0.5, lambda: display_controller.display_number(channel_dialer.current_channel)).start()
-    send_key_to_mpv('c')
-
-def EFFECT_PREV():
-    print("✨ Previous effect!")
-    if display_controller:
-        display_controller.display_text("EFdn")
-        threading.Timer(0.5, lambda: display_controller.display_number(channel_dialer.current_channel)).start()
-    send_key_to_mpv('z')
-
-def VOLUME_UP():
-    print("🔊 Volume UP!")
-    send_key_to_mpv('0')
-
-def VOLUME_DOWN():
-    print("🔉 Volume DOWN!")
-    send_key_to_mpv('9')
-
-def MUTE():
-    print("🔇 Mute toggle!")
-    send_key_to_mpv('m')
-
-def POWER():
-    print("⚡ Power toggle!")
-    # Clear display on power off, show channel on power on
-    if display_controller:
-        display_controller.clear_display()
-        time.sleep(0.5)
-        display_controller.display_number(channel_dialer.current_channel)
-    write_json_to_socket({"command": "power_toggle", "timestamp": time.time()})
-
-def PAUSE():
-    print("⏸️  Pause/Play toggle!")
-    send_key_to_mpv('space')
-
-def INFO():
-    print("ℹ️  Info display!")
-    # Show "INFO" briefly on display
-    if display_controller:
-        display_controller.display_text("INFO")
-        time.sleep(1.5)
-        display_controller.display_number(channel_dialer.current_channel)
-    write_json_to_socket({"command": "info", "timestamp": time.time()})
-
-def MENU():
-    print("📋 Menu!")
-    # Show "MENU" briefly on display
-    if display_controller:
-        display_controller.display_text("MENU")
-        time.sleep(1.5)
-        display_controller.display_number(channel_dialer.current_channel)
-    write_json_to_socket({"command": "menu", "timestamp": time.time()})
-
-def OK():
-    print("✅ OK/Select!")
-    send_key_to_mpv('Return')
-
-def BACK():
-    print("⬅️  Back!")
-    write_json_to_socket({"command": "back", "timestamp": time.time()})
-
-# Digit handlers - these add to the channel dialer queue
-def DIGIT_0():
-    print("0️⃣ Digit 0")
-    channel_dialer.add_digit(0)
-
-def DIGIT_1():
-    print("1️⃣ Digit 1")
-    channel_dialer.add_digit(1)
-
-def DIGIT_2():
-    print("2️⃣ Digit 2")
-    channel_dialer.add_digit(2)
-
-def DIGIT_3():
-    print("3️⃣ Digit 3")
-    channel_dialer.add_digit(3)
-
-def DIGIT_4():
-    print("4️⃣ Digit 4")
-    channel_dialer.add_digit(4)
-
-def DIGIT_5():
-    print("5️⃣ Digit 5")
-    channel_dialer.add_digit(5)
-
-def DIGIT_6():
-    print("6️⃣ Digit 6")
-    channel_dialer.add_digit(6)
-
-def DIGIT_7():
-    print("7️⃣ Digit 7")
-    channel_dialer.add_digit(7)
-
-def DIGIT_8():
-    print("8️⃣ Digit 8")
-    channel_dialer.add_digit(8)
-
-def DIGIT_9():
-    print("9️⃣ Digit 9")
-    channel_dialer.add_digit(9)
-
-def DIGITAL_ANALOG():
-    print("✨ Digital / Analog effect!")
-    send_key_to_mpv('b')
-
-def UNMAPPED_EVENT(event_name):
-    print(f"❓ Unmapped event: {event_name}")
-
-def UNKNOWN_EVENT(event_name):
-    print(f"❌ Unknown event: {event_name}")
-
-def handle_event(event_name, protocol=None, address=None, command=None, verbose=False):
-    if event_name.startswith("UNMAPPED_"):
-        UNMAPPED_EVENT(event_name)
-    elif event_name.startswith("UNKNOWN_"):
-        UNKNOWN_EVENT(event_name)
-    else:
-        handler = globals().get(event_name)
-        if handler and callable(handler):
-            handler()
-        else:
-            print(f"⚠️  No handler for event: {event_name}")
-            write_json_to_socket({"command": "no_handler", "event": event_name})
-
-    if verbose and protocol and address and command:
-        print(f"🔍 Raw IR: protocol={protocol}, address={address}, command={command}")
 
 # Enhanced remote configurations with more button mappings
 REMOTE_CONFIGS = {
@@ -578,19 +430,6 @@ REMOTE_CONFIGS = {
             "0x07": "DIGIT_7",
             "0x08": "DIGIT_8",
             "0x09": "DIGIT_9",
-            
-            ## Volume
-            #"0x15": "VOLUME_UP",
-            #"0x16": "VOLUME_DOWN",
-            #"0x17": "MUTE",
-            #
-            ## Control
-            #"0x18": "POWER",
-            #"0x19": "PAUSE",
-            #"0x1A": "INFO",
-            #"0x1B": "MENU",
-            #"0x1C": "OK",
-            #"0x1D": "BACK",
         }
     },
     "samsung_tv": {
@@ -599,10 +438,6 @@ REMOTE_CONFIGS = {
         "mappings": {
             "0x12": "CHANNEL_UP",
             "0x10": "CHANNEL_DOWN",
-            #"0x07": "VOLUME_UP",
-            #"0x0B": "VOLUME_DOWN",
-            #"0x0F": "MUTE",
-            #"0x02": "POWER",
             
             # Samsung digit mappings
             "0x04": "DIGIT_1",
@@ -625,10 +460,6 @@ REMOTE_CONFIGS = {
             "0x11": "CHANNEL_DOWN",
             "0x33": "EFFECT_NEXT",
             "0x34": "EFFECT_PREV",
-            #"0x12": "VOLUME_UP",
-            #"0x13": "VOLUME_DOWN",
-            #"0x14": "MUTE",
-            #"0x15": "POWER",
             
             # Sony digit mappings
             "0x00": "DIGIT_1",
@@ -652,135 +483,271 @@ REMOTE_CONFIGS = {
     },
 }
 
-def map_ir_signal(protocol, address, command):
-    for remote_name, config in REMOTE_CONFIGS.items():
-        if config["protocol"] == protocol and config["address"] == address:
-            if command in config["mappings"]:
-                return config["mappings"][command], protocol, address, command
+class IRRemoteMapper:
+    """Main IR Remote Mapper class that coordinates everything"""
+    
+    def __init__(self, args):
+        self.args = args
+        self.display_controller = None
+        self.channel_dialer = None
+        self.flipper = None
+        self.log_file = None
+        
+        # Event state
+        self.last_event = None
+        self.last_event_time = 0
+        
+        # Initialize components
+        self._setup_logging()
+        self._setup_display()
+        self._setup_channel_dialer()
+        self._setup_event_handlers()
+    
+    def _setup_logging(self):
+        """Setup logging if requested"""
+        if self.args.log_to_file:
+            os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
+            self.log_file = open(LOG_PATH, 'a')
+            sys.stdout = self.log_file
+            sys.stderr = self.log_file
+    
+    def _setup_display(self):
+        """Initialize display controller"""
+        self.display_controller = DisplayController(self.args.display_device, self.args.display_baud)
+        if self.display_controller.display_serial:
+            self.display_controller.set_brightness(self.args.display_brightness)
+            self.display_controller.turn_on()
+    
+    def _setup_channel_dialer(self):
+        """Initialize channel dialer with display"""
+        self.channel_dialer = ChannelDialer(
+            digit_timeout=self.args.digit_timeout,
+            display_controller=self.display_controller
+        )
+    
+    def _setup_event_handlers(self):
+        """Setup event handler mappings"""
+        self.event_handlers = {
+            'CHANNEL_UP': self._handle_channel_up,
+            'CHANNEL_DOWN': self._handle_channel_down,
+            'EFFECT_NEXT': self._handle_effect_next,
+            'EFFECT_PREV': self._handle_effect_prev,
+            'VOLUME_UP': self._handle_volume_up,
+            'VOLUME_DOWN': self._handle_volume_down,
+            'MUTE': self._handle_mute,
+            'POWER': self._handle_power,
+            'PAUSE': self._handle_pause,
+            'INFO': self._handle_info,
+            'MENU': self._handle_menu,
+            'OK': self._handle_ok,
+            'BACK': self._handle_back,
+            'DIGIT_0': lambda: self._handle_digit(0),
+            'DIGIT_1': lambda: self._handle_digit(1),
+            'DIGIT_2': lambda: self._handle_digit(2),
+            'DIGIT_3': lambda: self._handle_digit(3),
+            'DIGIT_4': lambda: self._handle_digit(4),
+            'DIGIT_5': lambda: self._handle_digit(5),
+            'DIGIT_6': lambda: self._handle_digit(6),
+            'DIGIT_7': lambda: self._handle_digit(7),
+            'DIGIT_8': lambda: self._handle_digit(8),
+            'DIGIT_9': lambda: self._handle_digit(9),
+            'DIGITAL_ANALOG': self._handle_digital_analog,
+        }
+    
+    def _boot_sequence(self):
+        """Show boot sequence on display"""
+        if self.display_controller and self.display_controller.display_serial:
+            self.display_controller.display_text("----")
+            time.sleep(0.8)
+            self.display_controller.display_text("ACId")
+            time.sleep(0.4)
+            self.display_controller.display_text("BOOT")
+            time.sleep(2.0)
+            self.display_controller.display_text("redY")
+            time.sleep(1.5)
+            self.display_controller.display_number(self.channel_dialer.current_channel)
+    
+    def _handle_channel_up(self):
+        print("📺 Channel UP!")
+        self.channel_dialer.clear_queue()
+        self.channel_dialer.channel_up()
+    
+    def _handle_channel_down(self):
+        print("📺 Channel DOWN!")
+        self.channel_dialer.clear_queue()
+        self.channel_dialer.channel_down()
+    
+    def _handle_effect_next(self):
+        print("✨ Next effect!")
+        if self.display_controller:
+            self.display_controller.display_text("EFuP")
+            threading.Timer(0.5, lambda: self.display_controller.display_number(self.channel_dialer.current_channel)).start()
+        send_key_to_mpv('c')
+    
+    def _handle_effect_prev(self):
+        print("✨ Previous effect!")
+        if self.display_controller:
+            self.display_controller.display_text("EFdn")
+            threading.Timer(0.5, lambda: self.display_controller.display_number(self.channel_dialer.current_channel)).start()
+        send_key_to_mpv('z')
+    
+    def _handle_volume_up(self):
+        print("🔊 Volume UP!")
+        send_key_to_mpv('0')
+    
+    def _handle_volume_down(self):
+        print("🔉 Volume DOWN!")
+        send_key_to_mpv('9')
+    
+    def _handle_mute(self):
+        print("🔇 Mute toggle!")
+        send_key_to_mpv('m')
+    
+    def _handle_power(self):
+        print("⚡ Power toggle!")
+        if self.display_controller:
+            self.display_controller.clear_display()
+            time.sleep(0.5)
+            self.display_controller.display_number(self.channel_dialer.current_channel)
+        write_json_to_socket({"command": "power_toggle", "timestamp": time.time()})
+    
+    def _handle_pause(self):
+        print("⏸️  Pause/Play toggle!")
+        send_key_to_mpv('space')
+    
+    def _handle_info(self):
+        print("ℹ️  Info display!")
+        if self.display_controller:
+            self.display_controller.display_text("INFO")
+            time.sleep(1.5)
+            self.display_controller.display_number(self.channel_dialer.current_channel)
+        write_json_to_socket({"command": "info", "timestamp": time.time()})
+    
+    def _handle_menu(self):
+        print("📋 Menu!")
+        if self.display_controller:
+            self.display_controller.display_text("MENU")
+            time.sleep(1.5)
+            self.display_controller.display_number(self.channel_dialer.current_channel)
+        write_json_to_socket({"command": "menu", "timestamp": time.time()})
+    
+    def _handle_ok(self):
+        print("✅ OK/Select!")
+        send_key_to_mpv('Return')
+    
+    def _handle_back(self):
+        print("⬅️  Back!")
+        write_json_to_socket({"command": "back", "timestamp": time.time()})
+    
+    def _handle_digit(self, digit):
+        print(f"{digit}️⃣ Digit {digit}")
+        self.channel_dialer.add_digit(digit)
+    
+    def _handle_digital_analog(self):
+        print("✨ Digital / Analog effect!")
+        send_key_to_mpv('b')
+    
+    def _handle_unmapped_event(self, event_name):
+        print(f"❓ Unmapped event: {event_name}")
+    
+    def _handle_unknown_event(self, event_name):
+        print(f"❌ Unknown event: {event_name}")
+    
+    def handle_event(self, event_name, protocol=None, address=None, command=None):
+        """Handle an IR event"""
+        if event_name.startswith("UNMAPPED_"):
+            self._handle_unmapped_event(event_name)
+        elif event_name.startswith("UNKNOWN_"):
+            self._handle_unknown_event(event_name)
+        else:
+            handler = self.event_handlers.get(event_name)
+            if handler:
+                handler()
             else:
-                return f"UNMAPPED_{remote_name}_{command}", protocol, address, command
-    return f"UNKNOWN_{protocol}_{address}_{command}", protocol, address, command
+                print(f"⚠️  No handler for event: {event_name}")
+                write_json_to_socket({"command": "no_handler", "event": event_name})
 
-def setup_logging(log_to_file=False):
-    if log_to_file:
-        os.makedirs(os.path.dirname(LOG_PATH), exist_ok=True)
-        log_file = open(LOG_PATH, 'a')
-        sys.stdout = log_file
-        sys.stderr = log_file
-        return log_file
-    return None
-
-def main():
-    global display_controller, channel_dialer
+        if self.args.verbose_unknowns and protocol and address and command:
+            print(f"🔍 Raw IR: protocol={protocol}, address={address}, command={command}")
     
-    parser = argparse.ArgumentParser(description='Enhanced IR Remote Event Mapper with Channel Dialing and 7-Segment Display')
-    parser.add_argument('--device', '-d', default='/dev/ttyACM0',
-                        help='Flipper Zero serial device')
-    parser.add_argument('--display-device', default='/dev/ttyACM0',
-                        help='7-segment display serial device (e.g., /dev/ttyUSB0)')
-    parser.add_argument('--display-baud', type=int, default=9600,
-                        help='Display serial baudrate')
-    parser.add_argument('--debug', action='store_true',
-                        help='Show raw IR data')
-    parser.add_argument('--debounce', '-t', type=float, default=0.7,
-                        help='Debounce time in seconds')
-    parser.add_argument('--digit-timeout', type=float, default=1.5,
-                        help='Timeout for digit sequence in seconds')
-    parser.add_argument('--log-to-file', action='store_true',
-                        help='Log output to file instead of terminal')
-    parser.add_argument('--verbose-unknowns', action='store_true',
-                        help='Print protocol/address/command for unknown signals')
-    parser.add_argument('--display-brightness', type=int, default=7, choices=range(8),
-                        help='Initial display brightness (0-7)')
-    args = parser.parse_args()
-
-    # Initialize display controller
-    display_controller = DisplayController(args.display_device, args.display_baud)
-    if display_controller.display_serial:
-        display_controller.set_brightness(args.display_brightness)
-        display_controller.turn_on()
-
-    # Initialize channel dialer with display
-    channel_dialer = ChannelDialer(digit_timeout=args.digit_timeout, display_controller=display_controller)
+    def map_ir_signal(self, protocol, address, command):
+        """Map IR signal to event name"""
+        for remote_name, config in REMOTE_CONFIGS.items():
+            if config["protocol"] == protocol and config["address"] == address:
+                if command in config["mappings"]:
+                    return config["mappings"][command], protocol, address, command
+                else:
+                    return f"UNMAPPED_{remote_name}_{command}", protocol, address, command
+        return f"UNKNOWN_{protocol}_{address}_{command}", protocol, address, command
     
-    # Boot sequence
-    # Show initial channel on display (at end)
-    if display_controller.display_serial:
-        display_controller.display_text("----")
-        time.sleep(0.8)
-        display_controller.display_text("ACId")
-        time.sleep(0.4)
-        display_controller.display_text("BOOT")
-        time.sleep(2.0)
-        display_controller.display_text("redY")
-        time.sleep(1.5)
-        display_controller.display_number(channel_dialer.current_channel)
+    def run(self):
+        """Main run loop"""
+        try:
+            # Boot sequence
+            self._boot_sequence()
 
-    log_file = setup_logging(args.log_to_file)
+            # Setup socket directory
+            os.makedirs(os.path.dirname(SOCKET_PATH), exist_ok=True)
 
-    last_event = None
-    last_event_time = 0
+            # Connect to Flipper
+            self.flipper = serial.Serial(self.args.device, 115200, timeout=1)
+            time.sleep(3)
+            self.flipper.flushInput()
 
-    try:
-        os.makedirs(os.path.dirname(SOCKET_PATH), exist_ok=True)
-        flipper = serial.Serial(args.device, 115200, timeout=1)
-        time.sleep(3)
-        flipper.flushInput()
-
-        flipper.write(b'\x03')
-        time.sleep(1)
-        flipper.flushInput()
-
-        flipper.write(b'ir rx\r\n')
-        print(f"Enhanced IR Remote Mapper ready on {args.device}...")
-        print(f"Writing JSON to: {SOCKET_PATH}")
-        print(f"Valid channels: {VALID_CHANNELS}")
-        print(f"Current channel: {channel_dialer.current_channel}")
-        print(f"Channel digit timeout: {args.digit_timeout}s")
-        if display_controller.display_serial:
-            print(f"📟 Display: {args.display_device} @ {args.display_baud} baud")
-        print("📺 Ready for channel dialing and Easter eggs!")
-
-        while True:
-            line = flipper.readline().decode('utf-8').strip()
-            if not line:
-                continue
-            if args.debug:
-                print(f"DEBUG: '{line}'")
-            if any(line.startswith(h) for h in ('ir rx', 'Receiving', 'Press Ctrl+C')):
-                continue
-            ir_match = re.match(r'(\w+), A:(0x[0-9A-Fa-f]+), C:(0x[0-9A-Fa-f]+)', line)
-            if ir_match:
-                protocol, address, command = ir_match.groups()
-                event, proto, addr, cmd = map_ir_signal(protocol, address, command)
-                current_time = time.time()
-
-                if event != last_event or (current_time - last_event_time) >= args.debounce:
-                    handle_event(event, proto, addr, cmd, args.verbose_unknowns)
-                    last_event = event
-                    last_event_time = current_time
-
-    except KeyboardInterrupt:
-        print("\nMapper stopped")
-        channel_dialer.clear_queue()  # Clean up any pending timers
-        if display_controller and display_controller.display_serial:
-            display_controller.display_text("BYE")
+            self.flipper.write(b'\x03')
             time.sleep(1)
-            display_controller.clear_display()
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        try:
-            flipper.close()
-        except:
-            pass
-        try:
-            if display_controller and display_controller.display_serial:
-                display_controller.display_serial.close()
-        except:
-            pass
-        if log_file:
-            log_file.close()
+            self.flipper.flushInput()
 
-if __name__ == "__main__":
-    main()
+            self.flipper.write(b'ir rx\r\n')
+
+            # Startup messages
+            print(f"Enhanced IR Remote Mapper ready on {self.args.device}...")
+            print(f"Writing JSON to: {SOCKET_PATH}")
+            print(f"Valid channels: {VALID_CHANNELS}")
+            print(f"Current channel: {self.channel_dialer.current_channel}")
+            print(f"Channel digit timeout: {self.args.digit_timeout}s")
+            if self.display_controller and self.display_controller.display_serial:
+                print(f"📟 Display: {self.args.display_device} @ {self.args.display_baud} baud")
+
+            while True:
+                line = self.flipper.readline().decode('utf-8').strip()
+                if not line:
+                    continue
+                if self.args.debug:
+                    print(f"DEBUG: '{line}'")
+                if any(line.startswith(h) for h in ('ir rx', 'Receiving', 'Press Ctrl+C')):
+                    continue
+
+                ir_match = re.match(r'(\w+), A:(0x[0-9A-Fa-f]+), C:(0x[0-9A-Fa-f]+)', line)
+                if ir_match:
+                    protocol, address, command = ir_match.groups()
+                    event, proto, addr, cmd = self.map_ir_signal(protocol, address, command)
+                    current_time = time.time()
+
+                    if event != self.last_event or (current_time - self.last_event_time) >= self.args.debounce:
+                        self.handle_event(event, proto, addr, cmd)
+                        self.last_event = event
+                        self.last_event_time = current_time
+
+        except KeyboardInterrupt:
+            print("\nMapper stopped")
+            self.channel_dialer.clear_queue()  # Clean up any pending timers
+            if self.display_controller and self.display_controller.display_serial:
+                self.display_controller.display_text("BYE")
+                time.sleep(1)
+                self.display_controller.clear_display()
+        except Exception as e:
+            print(f"Error: {e}")
+        finally:
+            try:
+                if self.flipper:
+                    self.flipper.close()
+            except:
+                pass
+            try:
+                if self.display_controller and self.display_controller.display_serial:
+                    self.display_controller.display_serial.close()
+            except:
+                pass
+            if self.log_file:
+                self.log_file.close()
