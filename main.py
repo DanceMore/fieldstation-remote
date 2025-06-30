@@ -13,7 +13,7 @@ def main():
                         help='Flipper Zero serial device')
     parser.add_argument('--display-device', default='/dev/ttyACM0',
                         help='7-segment display serial device (e.g., /dev/ttyUSB0)')
-    parser.add_argument('--display-baud', type=int, default=9600,
+    parser.add_argument('--display-baud', type=int, default=115200,
                         help='Display serial baudrate')
     parser.add_argument('--debug', action='store_true',
                         help='Show raw IR data')

@@ -11,7 +11,7 @@ import threading
 class DisplayController:
     """Handles 7-segment display communication via serial"""
 
-    def __init__(self, display_device=None, baudrate=9600):
+    def __init__(self, display_device=None, baudrate=115200):
         self.display_serial = None
         self.display_device = display_device
         self.baudrate = baudrate
