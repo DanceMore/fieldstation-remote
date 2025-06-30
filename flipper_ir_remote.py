@@ -114,8 +114,8 @@ class ChannelDialer:
             "666": self.demon_mode,
             "420": self.party_mode,
             "777": self.lucky_mode,
-            "123": self.test_mode,
-            "000": self.reset_mode,
+            "1234": self.test_mode,
+            "0000": self.reset_mode,
             "404": self.error_mode,
             "80085": self.fun_mode,  # Support for longer sequences
         }
