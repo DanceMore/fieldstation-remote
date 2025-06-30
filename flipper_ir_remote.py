@@ -182,6 +182,7 @@ class IRRemoteMapper:
         if self.display_controller and self.display_controller.display_serial:
             self.display_queue.show_text("ACId")
             self.display_queue.show_text("BOOT")
+            self.display_queue.sleep(0.5)
     
     def _handle_channel_up(self):
         print("📺 Channel UP!")
