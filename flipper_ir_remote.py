@@ -16,6 +16,7 @@ from collections import deque
 
 # Import our modular components
 from display_controller import DisplayController
+from display_queue import DisplayQueue
 from channel_dialer import ChannelDialer, VALID_CHANNELS, write_json_to_socket, send_key_to_mpv
 
 SOCKET_PATH = "/home/appuser/FieldStation42/runtime/channel.socket"
@@ -122,6 +123,8 @@ class IRRemoteMapper:
         self._setup_display()
         self._setup_channel_dialer()
         self._setup_event_handlers()
+        self.display_queue = DisplayQueue(self.display_controller)
+        self.display_queue.start()
     
     def _setup_logging(self):
         """Setup logging if requested"""
@@ -177,12 +180,8 @@ class IRRemoteMapper:
     def _boot_sequence(self):
         """Show boot sequence on display"""
         if self.display_controller and self.display_controller.display_serial:
-            self.display_controller.display_text("----")
-            time.sleep(0.8)
-            self.display_controller.display_text("ACId")
-            time.sleep(0.4)
-            self.display_controller.display_text("BOOT")
-            time.sleep(2.0)
+            self.display_queue.show_text("ACId")
+            self.display_queue.show_text("BOOT")
     
     def _handle_channel_up(self):
         print("📺 Channel UP!")
@@ -296,7 +295,7 @@ class IRRemoteMapper:
                 else:
                     return f"UNMAPPED_{remote_name}_{command}", protocol, address, command
         return f"UNKNOWN_{protocol}_{address}_{command}", protocol, address, command
-    
+
     def run(self):
         """Main run loop"""
         try:
@@ -308,7 +307,6 @@ class IRRemoteMapper:
 
             # Connect to Flipper
             self.flipper = serial.Serial(self.args.device, 115200, timeout=1)
-            time.sleep(3)
             self.flipper.flushInput()
 
             self.flipper.write(b'\x03')
@@ -325,9 +323,9 @@ class IRRemoteMapper:
             print(f"Channel digit timeout: {self.args.digit_timeout}s")
             if self.display_controller and self.display_controller.display_serial:
                 print(f"📟 Display: {self.args.display_device} @ {self.args.display_baud} baud")
-                self.display_controller.display_text("redY")
-                time.sleep(1.5)
-                self.display_controller.display_number(self.channel_dialer.current_channel)
+                self.display_queue.show_text("redY")
+                self.display_queue.sleep(0.5)
+                self.display_queue.show_number(self.channel_dialer.current_channel)
 
             while True:
                 line = self.flipper.readline().decode('utf-8').strip()
