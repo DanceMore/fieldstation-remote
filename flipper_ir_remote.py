@@ -30,11 +30,11 @@ REMOTE_CONFIGS = {
             # Channel controls
             "0x11": "CHANNEL_UP",
             "0x14": "CHANNEL_DOWN",
-            
+
             # Effects
             "0x10": "EFFECT_PREV",
             "0x12": "EFFECT_NEXT",
-            
+
             # Digits
             "0x00": "DIGIT_0",
             "0x01": "DIGIT_1",
@@ -54,7 +54,7 @@ REMOTE_CONFIGS = {
         "mappings": {
             "0x12": "CHANNEL_UP",
             "0x10": "CHANNEL_DOWN",
-            
+
             # Samsung digit mappings
             "0x04": "DIGIT_1",
             "0x05": "DIGIT_2",
@@ -104,17 +104,21 @@ class IRRemoteMapper:
     
     def __init__(self, args):
         self.args = args
+
+        # set up logging early...
+        self.log_file = None
+        self._setup_logging()
+
+        # set up hardware / comms...
         self.display_controller = None
         self.channel_dialer = None
         self.flipper = None
-        self.log_file = None
         
         # Event state
         self.last_event = None
         self.last_event_time = 0
         
         # Initialize components
-        self._setup_logging()
         self._setup_display()
         self._setup_channel_dialer()
         self._setup_event_handlers()
@@ -282,7 +286,7 @@ class IRRemoteMapper:
 
         if self.args.verbose_unknowns and protocol and address and command:
             print(f"🔍 Raw IR: protocol={protocol}, address={address}, command={command}")
-    
+
     def map_ir_signal(self, protocol, address, command):
         """Map IR signal to event name"""
         for remote_name, config in REMOTE_CONFIGS.items():
@@ -319,11 +323,11 @@ class IRRemoteMapper:
             print(f"Valid channels: {VALID_CHANNELS}")
             print(f"Current channel: {self.channel_dialer.current_channel}")
             print(f"Channel digit timeout: {self.args.digit_timeout}s")
-           if self.display_controller and self.display_controller.display_serial:
-               print(f"📟 Display: {self.args.display_device} @ {self.args.display_baud} baud")
-               self.display_controller.display_text("redY")
-               time.sleep(1.5)
-               self.display_controller.display_number(self.channel_dialer.current_channel)
+            if self.display_controller and self.display_controller.display_serial:
+                print(f"📟 Display: {self.args.display_device} @ {self.args.display_baud} baud")
+                self.display_controller.display_text("redY")
+                time.sleep(1.5)
+                self.display_controller.display_number(self.channel_dialer.current_channel)
 
             while True:
                 line = self.flipper.readline().decode('utf-8').strip()
