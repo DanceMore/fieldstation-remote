@@ -239,6 +239,32 @@ class ChannelDialer:
         """Handle channel down"""
         self._change_channel(-1)
 
+    def trigger_immediate_easter_egg(self, easter_egg_id):
+        """Trigger an immediate Easter egg (for button presses, not dialing)"""
+        easter_egg = self.easter_registry.trigger_immediate_easter_egg(easter_egg_id)
+        if not easter_egg:
+            print(f"❌ Unknown immediate Easter egg: {easter_egg_id}")
+            return False
+
+        # Check cooldown
+        if not self.cooldown_manager.can_activate(easter_egg_id, easter_egg['cooldown']):
+            remaining = self.cooldown_manager.get_time_until_available(easter_egg_id, easter_egg['cooldown'])
+            print(f"⏳ {easter_egg_id} still in cooldown ({remaining:.1f}s remaining)")
+            return False
+
+        print(f"🎯 {easter_egg['message']}")
+        self._update_display(easter_egg['display'], is_text=True)
+
+        try:
+            easter_egg['action']()
+            self.cooldown_manager.activate_easter_egg(easter_egg_id, easter_egg['cooldown'])
+            time.sleep(0.5)
+            self._update_display(self.current_channel)
+            return True
+        except Exception as e:
+            print(f"⚠️ Immediate Easter egg failed: {e}")
+            return False
+
     # Convenience methods for Easter egg management
     def add_custom_easter_egg(self, sequence, message, display, action_func):
         """Add a custom Easter egg at runtime"""

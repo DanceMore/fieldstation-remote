@@ -218,6 +218,14 @@ class EasterEggActions:
         except Exception as e:
             print(f"⚠️ Fun cleanup failed: {e}")
 
+    def digital_analog_effect(self):
+        """DIGITAL_ANALOG - Digital/Analog visual effect (instant)"""
+        print("✨ Digital/Analog effect activated")
+        try:
+            send_key_to_mpv('b')
+        except Exception as e:
+            print(f"⚠️ Digital/Analog effect failed: {e}")
+
 class EasterEggRegistry:
     """Enhanced registry with cooldown and expiration support"""
     
@@ -287,13 +295,25 @@ class EasterEggRegistry:
                 "cooldown": 900,   # 15 min cooldown
                 "duration": 600,   # 10 minutes active
                 "description": "Fun mode (10m active, 15m cooldown)"
-            }
+            },
+            "DIGITAL_ANALOG": {
+                "message": "✨ Digital/Analog effect!",
+                "display": "dA",
+                "action": self.actions.digital_analog_effect,
+                "cooldown": 3,     # 3 second cooldown
+                "description": "Digital/Analog effect (instant, 3s cooldown)"
         }
-    
+    }
+
     def get_easter_egg(self, sequence):
         """Get Easter egg configuration for sequence"""
         return self._registry.get(sequence)
-    
+
     def is_easter_egg(self, sequence):
         """Check if sequence is an Easter egg"""
         return sequence in self._registry
+
+    def trigger_immediate_easter_egg(self, easter_egg_id):
+        """Trigger an Easter egg immediately by ID (for button presses)"""
+        if easter_egg_id in self._registry:
+            return self._registry[easter_egg_id]

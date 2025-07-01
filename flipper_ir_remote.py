@@ -264,8 +264,9 @@ class IRRemoteMapper:
         self.channel_dialer.add_digit(digit)
     
     def _handle_digital_analog(self):
-        print("✨ Digital / Analog effect!")
-        send_key_to_mpv('b')
+        """Handle DIGITAL_ANALOG button press through Easter egg system"""
+        print("📺 Digital/Analog button pressed")
+        self.channel_dialer.trigger_immediate_easter_egg('DIGITAL_ANALOG')
     
     def _handle_unmapped_event(self, event_name):
         print(f"❓ Unmapped event: {event_name}")
