@@ -10,6 +10,8 @@ import json
 from collections import deque
 from contextlib import contextmanager
 
+from easter_eggs import EasterEggCooldownManager, EasterEggActions, EasterEggRegistry
+
 # Configuration
 VALID_CHANNELS = [1, 2, 3, 8, 9, 13]
 SOCKET_PATH = "/home/appuser/FieldStation42/runtime/channel.socket"
@@ -42,146 +44,6 @@ def send_key_to_mpv(key):
         env={'DISPLAY': ':0'}
     ).decode().strip().split('\n')[0]
     subprocess.run(['xdotool', 'key', '--window', window_id, key], env={'DISPLAY': ':0'})
-
-class EasterEggActions:
-    """Namespace for Easter egg actions with proper error handling"""
-    
-    def __init__(self, dialer):
-        self.dialer = dialer
-    
-    def emergency_mode(self):
-        """911 - Emergency broadcast mode"""
-        try:
-            self.dialer.display.send_display_command("LED:red-blue 10")
-            send_key_to_mpv('c')
-            print("🚨 Emergency mode activated - sent 'c' key to MPV")
-        except Exception as e:
-            print(f"⚠️ Emergency mode failed: {e}")
-    
-    def demon_mode(self):
-        """666 - Demon mode (visual effect only)"""
-        print("😈 Demon mode activated")
-        # Could add screen effects, color changes, etc.
-    
-    def party_time(self):
-        """420 - Party mode"""
-        print("🎉 Party mode activated")
-        # Could add fun visual effects, music, etc.
-    
-    def lucky_mode(self):
-        """777 - Lucky mode"""
-        print("🍀 Lucky mode activated")
-        # Could add special channel selection logic
-    
-    def test_mode(self):
-        """1234 - Test mode for diagnostics"""
-        print("🧪 Test mode activated")
-        # Could run diagnostics, show system info, etc.
-    
-    def full_reset(self):
-        """0000 - Complete system reset"""
-        try:
-            # clear LED effects
-            self.dialer.display.send_display_command("LED:off")
-
-            # Reset channel to first valid
-            self.dialer._reset_to_first_channel()
-            print("🔄 Channel reset to first valid")
-            
-            # Clear MPV effects
-            send_key_to_mpv('h')
-            print("🔄 MPV effects cleared")
-            
-            # Could add more reset operations here:
-            # - Clear any cached data
-            # - Reset display brightness
-            # - Clear any temporary settings
-            # - Reset audio levels
-            # etc.
-            
-        except Exception as e:
-            print(f"⚠️ Reset operation failed: {e}")
-    
-    def show_404_error(self):
-        """404 - Show error page"""
-        try:
-            self.dialer._show_error("404")
-            print("💥 404 error displayed")
-        except Exception as e:
-            print(f"⚠️ 404 error display failed: {e}")
-    
-    def fun_mode(self):
-        """80085 - Fun mode"""
-        print("😄 Fun mode activated")
-        # Could add playful effects, sounds, etc.
-
-class EasterEggRegistry:
-    """Registry for managing Easter egg configurations"""
-    
-    def __init__(self, actions):
-        self.actions = actions
-        self._registry = {
-            "911": {
-                "message": "🚨 EMERGENCY!",
-                "display": "911!",
-                "action": self.actions.emergency_mode
-            },
-            "666": {
-                "message": "😈 DEMON MODE!",
-                "display": "666",
-                "action": self.actions.demon_mode
-            },
-            "420": {
-                "message": "🎉 PARTY TIME!",
-                "display": "420",
-                "action": self.actions.party_time
-            },
-            "777": {
-                "message": "🍀 LUCKY!",
-                "display": "777",
-                "action": self.actions.lucky_mode
-            },
-            "1234": {
-                "message": "🧪 TEST MODE!",
-                "display": "TEST",
-                "action": self.actions.test_mode
-            },
-            "0000": {
-                "message": "🔄 RESET!",
-                "display": "RST",
-                "action": self.actions.full_reset
-            },
-            "404": {
-                "message": "💥 ERROR!",
-                "display": "404",
-                "action": self.actions.show_404_error
-            },
-            "80085": {
-                "message": "😄 FUN TIME!",
-                "display": "BOOB",
-                "action": self.actions.fun_mode
-            }
-        }
-    
-    def get_easter_egg(self, sequence):
-        """Get Easter egg configuration for sequence"""
-        return self._registry.get(sequence)
-    
-    def is_easter_egg(self, sequence):
-        """Check if sequence is an Easter egg"""
-        return sequence in self._registry
-    
-    def add_easter_egg(self, sequence, message, display, action):
-        """Add new Easter egg (for dynamic registration)"""
-        self._registry[sequence] = {
-            "message": message,
-            "display": display,
-            "action": action
-        }
-    
-    def list_easter_eggs(self):
-        """List all registered Easter eggs"""
-        return list(self._registry.keys())
 
 class ChannelDialer:
     def __init__(self, digit_timeout=DIGIT_TIMEOUT, display_controller=None):
