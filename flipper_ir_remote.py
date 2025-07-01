@@ -17,7 +17,10 @@ from collections import deque
 # Import our modular components
 from display_controller import DisplayController
 from display_queue import DisplayQueue
-from channel_dialer import ChannelDialer, VALID_CHANNELS, write_json_to_socket, send_key_to_mpv
+from channel_dialer import ChannelDialer, VALID_CHANNELS
+
+# Import shared utilities
+from utils import safe_execute, send_key_to_mpv, write_json_to_socket
 
 SOCKET_PATH = "/home/appuser/FieldStation42/runtime/channel.socket"
 LOG_PATH = "/home/appuser/FieldStation42/runtime/ir_mapper.log"

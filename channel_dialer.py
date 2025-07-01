@@ -10,6 +10,10 @@ import json
 from collections import deque
 from contextlib import contextmanager
 
+# Import utilities
+from utils import safe_execute, write_json_to_socket
+
+# Import Easter egg system
 from easter_eggs import EasterEggCooldownManager, EasterEggActions, EasterEggRegistry
 
 # Configuration
@@ -17,33 +21,6 @@ VALID_CHANNELS = [1, 2, 3, 8, 9, 13]
 SOCKET_PATH = "/home/appuser/FieldStation42/runtime/channel.socket"
 DIGIT_TIMEOUT = 1.5
 DISPLAY_DELAY = 0.4
-
-def safe_execute(func, error_msg="Operation failed"):
-    """Decorator for safe function execution with error handling"""
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            print(f"{error_msg}: {e}")
-            return None
-    return wrapper
-
-@safe_execute
-def write_json_to_socket(data):
-    """Write JSON data to socket"""
-    json_str = json.dumps(data)
-    with open(SOCKET_PATH, 'w') as f:
-        f.write(json_str)
-    print(f"JSON written: {json_str}")
-
-@safe_execute
-def send_key_to_mpv(key):
-    """Send key to mpv window"""
-    window_id = subprocess.check_output(
-        ['xdotool', 'search', '--onlyvisible', '--class', 'mpv'],
-        env={'DISPLAY': ':0'}
-    ).decode().strip().split('\n')[0]
-    subprocess.run(['xdotool', 'key', '--window', window_id, key], env={'DISPLAY': ':0'})
 
 class ChannelDialer:
     def __init__(self, digit_timeout=DIGIT_TIMEOUT, display_controller=None):
@@ -58,6 +35,9 @@ class ChannelDialer:
         # Add Easter egg protection
         self.last_easter_egg_time = 0
         self.easter_egg_cooldown = 2.0  # 2 second cooldown after Easter egg
+
+        # Initialize cooldown manager first
+        self.cooldown_manager = EasterEggCooldownManager()
         
         # Initialize Easter egg system
         self.easter_actions = EasterEggActions(self)

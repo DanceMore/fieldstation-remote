@@ -2,6 +2,9 @@ import time
 import threading
 from collections import defaultdict
 
+# Import shared utilities
+from utils import safe_execute, send_key_to_mpv
+
 class EasterEggCooldownManager:
     """Manages cooldowns, expirations, and automatic cleanup for Easter eggs"""
     
