@@ -52,6 +52,7 @@ class EasterEggActions:
     def emergency_mode(self):
         """911 - Emergency broadcast mode"""
         try:
+            self.dialer.display.send_display_command("LED:red-blue 10")
             send_key_to_mpv('c')
             print("🚨 Emergency mode activated - sent 'c' key to MPV")
         except Exception as e:
