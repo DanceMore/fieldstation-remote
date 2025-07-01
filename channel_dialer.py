@@ -81,6 +81,9 @@ class EasterEggActions:
     def full_reset(self):
         """0000 - Complete system reset"""
         try:
+            # clear LED effects
+            self.dialer.display.send_display_command("LED:off")
+
             # Reset channel to first valid
             self.dialer._reset_to_first_channel()
             print("🔄 Channel reset to first valid")
