@@ -152,6 +152,11 @@ class EasterEggActions:
         print("🎉 Party mode activated")
         try:
             self.dialer.display.send_display_command("LED:rainbow 30")
+            time.sleep(1)
+            self.dialer.display.send_display_command("DISP:RAST")
+            time.sleep(1)
+            self.dialer.display.send_display_command("DISP:FARI")
+            time.sleep(1)
             print("🎉 Party effects active for 20 minutes")
         except Exception as e:
             print(f"⚠️ Party mode failed: {e}")
@@ -253,7 +258,7 @@ class EasterEggRegistry:
             },
             "420": {
                 "message": "🎉 PARTY TIME!",
-                "display": "420",
+                "display": "YAH",
                 "action": self.actions.party_time,
                 "cleanup": self.actions._cleanup_party_time,
                 "cooldown": 2400,  # 40 min cooldown
