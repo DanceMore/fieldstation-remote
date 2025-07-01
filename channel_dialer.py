@@ -191,7 +191,11 @@ class ChannelDialer:
         self.timer = None
         self.lock = threading.Lock()
         self.display = display_controller
-        self.current_channel = VALID_CHANNELS[0]  # Start with first valid channel
+        self.current_channel = VALID_CHANNELS[0]
+        
+        # Add Easter egg protection
+        self.last_easter_egg_time = 0
+        self.easter_egg_cooldown = 2.0  # 2 second cooldown after Easter egg
         
         # Initialize Easter egg system
         self.easter_actions = EasterEggActions(self)
@@ -241,8 +245,12 @@ class ChannelDialer:
         """Get current digit sequence as string"""
         return ''.join(self.digit_queue)
 
+    def _is_in_easter_egg_cooldown(self):
+        """Check if we're still in Easter egg cooldown period"""
+        return (time.time() - self.last_easter_egg_time) < self.easter_egg_cooldown
+
     def _execute_easter_egg(self, sequence):
-        """Execute Easter egg with proper error handling"""
+        """Execute Easter egg with proper error handling and cooldown"""
         if not self.easter_registry.is_easter_egg(sequence):
             return False
 
@@ -255,6 +263,9 @@ class ChannelDialer:
         except Exception as e:
             print(f"⚠️ Easter egg action failed: {e}")
 
+        # Set cooldown timestamp
+        self.last_easter_egg_time = time.time()
+        
         time.sleep(1)
         self._update_display(self.current_channel)
         return True
@@ -266,17 +277,23 @@ class ChannelDialer:
     def add_digit(self, digit):
         """Add digit to queue and manage timing"""
         with self._safe_lock():
+            # Ignore digits during Easter egg cooldown
+            if self._is_in_easter_egg_cooldown():
+                print(f"🔄 Ignoring digit {digit} - Easter egg cooldown active")
+                return
+
             self.digit_queue.append(str(digit))
             self.last_digit_time = time.time()
 
             current_sequence = self._get_current_sequence()
             self._update_display(current_sequence)
 
-            self._cancel_timer()
+            self._cancel_timer()  # Cancel any existing timer
 
             # Check for immediate Easter egg matches
             if self._execute_easter_egg(current_sequence):
                 self.digit_queue.clear()
+                self._cancel_timer()  # Double-cancel to be absolutely sure
                 print("🎮 Ready for new input...")
                 return
 
@@ -285,10 +302,12 @@ class ChannelDialer:
             self.timer.start()
 
     def clear_queue(self):
-        """Clear the digit queue"""
+        """Clear the digit queue and reset cooldown"""
         with self._safe_lock():
             self.digit_queue.clear()
             self._cancel_timer()
+            # Reset Easter egg cooldown when manually clearing
+            self.last_easter_egg_time = 0
             self._update_display(self.current_channel)
 
     def _process_channel(self):
