@@ -266,26 +266,26 @@ class EasterEggRegistry:
                 "duration": 1200,  # 20 minutes active
                 "description": "Party mode (20m active, 40m cooldown)"
             },
-            "777": {
-                "message": "🍀 LUCKY!",
-                "display": "777",
-                "action": self.actions.lucky_mode,
-                "cooldown": 300,   # 5 min cooldown for instant effects
-                "description": "Lucky mode (instant, 5m cooldown)"
-            },
+            #"777": {
+            #    "message": "🍀 LUCKY!",
+            #    "display": "777",
+            #    "action": self.actions.lucky_mode,
+            #    "cooldown": 300,   # 5 min cooldown for instant effects
+            #    "description": "Lucky mode (instant, 5m cooldown)"
+            #},
             "1234": {
-                "message": "🧪 TEST MODE!",
-                "display": "TEST",
-                "action": self.actions.test_mode,
-                "cooldown": 60,    # 1 min cooldown
-                "description": "Test mode (instant, 1m cooldown)"
+                "message": "🧪 TEST MODE! (aka reset)",
+                "display": " RST",
+                "action": self.actions.full_reset,
+                "cooldown": 3,
+                "description": "Test mode (aka reset) (instant, 3s cooldown)"
             },
             "0000": {
                 "message": "🔄 RESET!",
                 "display": "RST",
                 "action": self.actions.full_reset,
-                "cooldown": 30,    # 30 sec cooldown
-                "description": "Full reset (instant, 30s cooldown)"
+                "cooldown": 3,
+                "description": "Full reset (instant, 3s cooldown)"
             },
             "404": {
                 "message": "💥 ERROR!",
@@ -293,15 +293,6 @@ class EasterEggRegistry:
                 "action": self.actions.show_404_error,
                 "cooldown": 60,    # 1 min cooldown
                 "description": "404 error (instant, 1m cooldown)"
-            },
-            "80085": {
-                "message": "😄 FUN TIME!",
-                "display": "BOOB",
-                "action": self.actions.fun_mode,
-                "cleanup": self.actions._cleanup_fun_mode,
-                "cooldown": 900,   # 15 min cooldown
-                "duration": 600,   # 10 minutes active
-                "description": "Fun mode (10m active, 15m cooldown)"
             },
             "DIGITAL_ANALOG": {
                 "message": "✨ Digital/Analog effect!",
