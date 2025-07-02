@@ -108,7 +108,7 @@ class EasterEggActions:
     
     def __init__(self, dialer):
         self.dialer = dialer
-        self.cooldown_manager = dialer.cooldown_manager
+        # Note: cooldown_manager will be accessed via dialer.cooldown_manager
     
     def emergency_mode(self):
         """911 - Emergency broadcast mode with 30 min duration"""
@@ -186,14 +186,15 @@ class EasterEggActions:
         """0000 - Complete system reset (instant effect + cleanup all)"""
         try:
             # Force cleanup of ALL active effects
-            self.cooldown_manager.cleanup_all()
+            self.dialer.cooldown_manager.cleanup_all()
             
             # Clear LED effects
             self.dialer.display.send_display_command("LED:off")
             print("🔄 LED reset to off")
             
             # Reset channel to first valid
-            self.dialer._reset_to_first_channel()
+            #self.dialer._reset_to_first_channel()
+            self.dialer.tune_to_channel(1)
             print("🔄 Channel reset to first valid")
             
             # Clear MPV effects
@@ -286,8 +287,8 @@ class EasterEggRegistry:
                 "action": self.actions.digital_analog_effect,
                 "cooldown": 3,     # 3 second cooldown
                 "description": "Digital/Analog effect (instant, 3s cooldown)"
+            }
         }
-    }
 
     def get_easter_egg(self, sequence):
         """Get Easter egg configuration for sequence"""
@@ -297,7 +298,85 @@ class EasterEggRegistry:
         """Check if sequence is an Easter egg"""
         return sequence in self._registry
 
-    def trigger_immediate_easter_egg(self, easter_egg_id):
-        """Trigger an Easter egg immediately by ID (for button presses)"""
+    def trigger_easter_egg(self, dialer, sequence):
+        """Trigger an Easter egg with proper cooldown checking"""
+        config = self.get_easter_egg(sequence)
+        if not config:
+            return False
+        
+        # Check if on cooldown
+        if not dialer.cooldown_manager.can_activate(sequence, config["cooldown"]):
+            remaining = dialer.cooldown_manager.get_time_until_available(sequence, config["cooldown"])
+            minutes = remaining // 60
+            seconds = remaining % 60
+            if minutes > 0:
+                print(f"⏰ {sequence} still on cooldown for {minutes:.0f}m {seconds:.0f}s")
+            else:
+                print(f"⏰ {sequence} still on cooldown for {seconds:.0f}s")
+            return False
+        
+        # Display the message and show on display
+        print(config["message"])
+        if "display" in config:
+            try:
+                dialer.display.send_display_command(f"DISP:{config['display']}")
+            except Exception as e:
+                print(f"⚠️ Display update failed: {e}")
+        
+        # Activate the easter egg in the cooldown manager
+        dialer.cooldown_manager.activate_easter_egg(
+            sequence, 
+            config["cooldown"], 
+            config.get("duration"), 
+            config.get("cleanup")
+        )
+        
+        # Execute the action
+        try:
+            config["action"]()
+        except Exception as e:
+            print(f"⚠️ Easter egg action failed: {e}")
+            # If action failed, we should still respect the cooldown
+        
+        return True
+
+    def trigger_immediate_easter_egg(self, dialer, easter_egg_id):
+        """Trigger an Easter egg immediately by ID (for button presses) - bypasses cooldown"""
         if easter_egg_id in self._registry:
-            return self._registry[easter_egg_id]
+            config = self._registry[easter_egg_id]
+            
+            print(f"🔥 Immediate trigger: {config['message']}")
+            
+            # Still register activation for cooldown tracking
+            dialer.cooldown_manager.activate_easter_egg(
+                easter_egg_id, 
+                config["cooldown"], 
+                config.get("duration"), 
+                config.get("cleanup")
+            )
+            
+            # Execute the action
+            try:
+                config["action"]()
+            except Exception as e:
+                print(f"⚠️ Immediate easter egg action failed: {e}")
+            
+            return True
+        return False
+
+    def get_status_info(self, dialer):
+        """Get status information about all easter eggs"""
+        status = {}
+        for egg_id, config in self._registry.items():
+            remaining_cooldown = dialer.cooldown_manager.get_time_until_available(egg_id, config["cooldown"])
+            remaining_effect = dialer.cooldown_manager.get_effect_time_remaining(egg_id)
+            is_active = dialer.cooldown_manager.is_effect_active(egg_id)
+            
+            status[egg_id] = {
+                "description": config["description"],
+                "cooldown_remaining": remaining_cooldown,
+                "effect_remaining": remaining_effect,
+                "is_active": is_active,
+                "available": remaining_cooldown == 0
+            }
+        return status
