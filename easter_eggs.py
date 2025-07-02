@@ -114,8 +114,7 @@ class EasterEggActions:
         """911 - Emergency broadcast mode with 30 min duration"""
         try:
             self.dialer.display.send_display_command("LED:red-blue 10")
-            send_key_to_mpv('c')
-            print("🚨 Emergency mode activated - sent 'c' key to MPV")
+            print("🚨 Emergency mode activated")
             print("🚨 Emergency LED effects active for 30 minutes")
         except Exception as e:
             print(f"⚠️ Emergency mode failed: {e}")
@@ -124,7 +123,6 @@ class EasterEggActions:
         """Cleanup for emergency mode"""
         try:
             self.dialer.display.send_display_command("LED:off")
-            send_key_to_mpv('h')  # Clear MPV effects
             print("🚨 Emergency mode effects cleared")
         except Exception as e:
             print(f"⚠️ Emergency cleanup failed: {e}")
@@ -151,6 +149,7 @@ class EasterEggActions:
         print("🎉 Party mode activated")
         try:
             self.dialer.display.send_display_command("LED:rainbow-cycle 3")
+            send_key_to_mpv('b')
             print("🎉 Party effects active for 20 minutes")
         except Exception as e:
             print(f"⚠️ Party mode failed: {e}")
@@ -159,6 +158,7 @@ class EasterEggActions:
         """Cleanup for party mode"""
         try:
             self.dialer.display.send_display_command("LED:off")
+            send_key_to_mpv('h')  # Clear MPV effects
             print("🎉 Party mode effects cleared")
         except Exception as e:
             print(f"⚠️ Party cleanup failed: {e}")
