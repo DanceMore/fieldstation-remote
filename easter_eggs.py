@@ -170,15 +170,15 @@ class EasterEggActions:
         except Exception as e:
             print(f"⚠️ Party cleanup failed: {e}")
     
-    def lucky_mode(self):
-        """777 - Lucky mode (instant effect, no duration)"""
-        print("🍀 Lucky mode activated")
-        # This is an instant effect, no cleanup needed
+    #def lucky_mode(self):
+    #    """777 - Lucky mode (instant effect, no duration)"""
+    #    print("🍀 Lucky mode activated")
+    #    # This is an instant effect, no cleanup needed
     
-    def test_mode(self):
-        """1234 - Test mode (instant effect)"""
-        print("🧪 Test mode activated")
-        # Run diagnostics, instant effect
+    #def test_mode(self):
+    #    """1234 - Test mode (instant effect)"""
+    #    print("🧪 Test mode activated")
+    #    # Run diagnostics, instant effect
     
     def full_reset(self):
         """0000 - Complete system reset (instant effect + cleanup all)"""
@@ -188,6 +188,7 @@ class EasterEggActions:
             
             # Clear LED effects
             self.dialer.display.send_display_command("LED:off")
+            print("🔄 LED reset to off")
             
             # Reset channel to first valid
             self.dialer._reset_to_first_channel()
@@ -208,23 +209,6 @@ class EasterEggActions:
         except Exception as e:
             print(f"⚠️ 404 error display failed: {e}")
     
-    def fun_mode(self):
-        """80085 - Fun mode with effects for 10 minutes"""
-        print("😄 Fun mode activated")
-        try:
-            self.dialer.display.send_display_command("LED:bounce-green 2")
-            print("😄 Fun effects active for 10 minutes")
-        except Exception as e:
-            print(f"⚠️ Fun mode failed: {e}")
-    
-    def _cleanup_fun_mode(self):
-        """Cleanup for fun mode"""
-        try:
-            self.dialer.display.send_display_command("LED:off")
-            print("😄 Fun mode effects cleared")
-        except Exception as e:
-            print(f"⚠️ Fun cleanup failed: {e}")
-
     def digital_analog_effect(self):
         """DIGITAL_ANALOG - Digital/Analog visual effect (instant)"""
         print("✨ Digital/Analog effect activated")
