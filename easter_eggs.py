@@ -222,7 +222,7 @@ class EasterEggActions:
         """DIGITAL_ANALOG - Digital/Analog visual effect (instant)"""
         print("✨ Digital/Analog effect activated")
         try:
-            send_key_to_mpv('b')
+            send_key_to_mpv('d')
         except Exception as e:
             print(f"⚠️ Digital/Analog effect failed: {e}")
 
