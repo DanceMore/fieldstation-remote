@@ -260,7 +260,7 @@ class ChannelDialer:
 
         try:
             easter_egg['action']()
-            self.cooldown_manager.activate_easter_egg(easter_egg_id, easter_egg['cooldown'])
+            self.cooldown_manager.activate_easter_egg(easter_egg_id, easter_egg['cooldown'], easter_egg.get('duration'), easter_egg.get('cleanup'))
             time.sleep(0.5)
             self._update_display(self.current_channel)
             return True
