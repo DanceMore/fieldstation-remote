@@ -186,6 +186,7 @@ class ChannelDialer:
     def tune_to_channel(self, channel):
         """Tune to specific channel with validation"""
         print(f"📺 Attempting to tune to channel {channel}")
+        self.display.send_display_command("LED:ack")
 
         is_valid = channel in VALID_CHANNELS
 
@@ -208,6 +209,8 @@ class ChannelDialer:
 
     def _change_channel(self, direction):
         """Generic channel change handler"""
+        self.display.send_display_command("LED:ack")
+
         display_text = "UP" if direction > 0 else "Dn"
         self._update_display(display_text, is_text=True)
         time.sleep(DISPLAY_DELAY)
