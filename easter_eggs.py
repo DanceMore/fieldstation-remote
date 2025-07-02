@@ -113,8 +113,10 @@ class EasterEggActions:
     def emergency_mode(self):
         """911 - Emergency broadcast mode with 30 min duration"""
         try:
-            self.dialer.display.send_display_command("LED:red-blue 10")
             print("🚨 Emergency mode activated")
+            self.dialer.display.send_display_command("LED:red-blue 10")
+            time.sleep(0.5)
+            self.dialer.display.send_display_command("DISP:COPS")
             print("🚨 Emergency LED effects active for 30 minutes")
         except Exception as e:
             print(f"⚠️ Emergency mode failed: {e}")
@@ -148,8 +150,13 @@ class EasterEggActions:
         """420 - Party mode with effects for 20 minutes"""
         print("🎉 Party mode activated")
         try:
-            self.dialer.display.send_display_command("LED:rainbow-cycle 3")
             send_key_to_mpv('b')
+            self.dialer.display.send_display_command("LED:rainbow 30")
+            time.sleep(1)
+            self.dialer.display.send_display_command("DISP:RAST")
+            time.sleep(1)
+            self.dialer.display.send_display_command("DISP:FARI")
+            time.sleep(1)
             print("🎉 Party effects active for 20 minutes")
         except Exception as e:
             print(f"⚠️ Party mode failed: {e}")
@@ -234,7 +241,7 @@ class EasterEggRegistry:
         self._registry = {
             "911": {
                 "message": "🚨 EMERGENCY!",
-                "display": "911!",
+                "display": "SHIT",
                 "action": self.actions.emergency_mode,
                 "cleanup": self.actions._cleanup_emergency_mode,
                 "cooldown": 3600,  # 1 hour cooldown
@@ -252,7 +259,7 @@ class EasterEggRegistry:
             },
             "420": {
                 "message": "🎉 PARTY TIME!",
-                "display": "420",
+                "display": "YAH",
                 "action": self.actions.party_time,
                 "cleanup": self.actions._cleanup_party_time,
                 "cooldown": 2400,  # 40 min cooldown
@@ -298,7 +305,7 @@ class EasterEggRegistry:
             },
             "DIGITAL_ANALOG": {
                 "message": "✨ Digital/Analog effect!",
-                "display": "dA",
+                "display": "8bit",
                 "action": self.actions.digital_analog_effect,
                 "cooldown": 3,     # 3 second cooldown
                 "description": "Digital/Analog effect (instant, 3s cooldown)"

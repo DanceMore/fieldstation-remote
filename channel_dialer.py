@@ -34,7 +34,7 @@ class ChannelDialer:
         
         # Add Easter egg protection
         self.last_easter_egg_time = 0
-        self.easter_egg_cooldown = 2.0  # 2 second cooldown after Easter egg
+        self.easter_egg_debounce = 2.0  # 2 second cooldown after Easter egg
 
         # Initialize cooldown manager first
         self.cooldown_manager = EasterEggCooldownManager()
@@ -87,9 +87,9 @@ class ChannelDialer:
         """Get current digit sequence as string"""
         return ''.join(self.digit_queue)
 
-    def _is_in_easter_egg_cooldown(self):
-        """Check if we're still in Easter egg cooldown period"""
-        return (time.time() - self.last_easter_egg_time) < self.easter_egg_cooldown
+    def _is_in_easter_egg_debounce(self):
+        """Check if we're still in Easter egg debounce period"""
+        return (time.time() - self.last_easter_egg_time) < self.easter_egg_debounce
 
     def _execute_easter_egg(self, sequence):
         """Execute Easter egg with proper error handling and cooldown"""
@@ -119,9 +119,9 @@ class ChannelDialer:
     def add_digit(self, digit):
         """Add digit to queue and manage timing"""
         with self._safe_lock():
-            # Ignore digits during Easter egg cooldown
-            if self._is_in_easter_egg_cooldown():
-                print(f"🔄 Ignoring digit {digit} - Easter egg cooldown active")
+            # Ignore digits during Easter egg debounce
+            if self._is_in_easter_egg_debounce():
+                print(f"🔄 Ignoring digit {digit} - Easter egg debounce active")
                 return
 
             self.digit_queue.append(str(digit))
@@ -148,7 +148,7 @@ class ChannelDialer:
         with self._safe_lock():
             self.digit_queue.clear()
             self._cancel_timer()
-            # Reset Easter egg cooldown when manually clearing
+            # Reset Easter egg debounce when manually clearing
             self.last_easter_egg_time = 0
             self._update_display(self.current_channel)
 
