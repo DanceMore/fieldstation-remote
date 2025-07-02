@@ -133,6 +133,7 @@ class EasterEggActions:
         """666 - Demon mode with visual effects for 15 minutes"""
         print("😈 Demon mode activated")
         try:
+            send_key_to_mpv('m')
             self.dialer.display.send_display_command("LED:red-pulse 5")
             print("😈 Demon effects active for 15 minutes")
         except Exception as e:
@@ -142,6 +143,7 @@ class EasterEggActions:
         """Cleanup for demon mode"""
         try:
             self.dialer.display.send_display_command("LED:off")
+            send_key_to_mpv('h')  # Clear MPV effects
             print("😈 Demon mode effects cleared")
         except Exception as e:
             print(f"⚠️ Demon cleanup failed: {e}")
