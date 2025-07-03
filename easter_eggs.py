@@ -214,6 +214,7 @@ class EasterEggActions:
         """CLEAR - Clear effects (instant)"""
         print("✨ Clear effects activated")
         try:
+            dialer.display.send_display_command("LED:ack")
             send_key_to_mpv('h')
         except Exception as e:
             print(f"⚠️ Clear effects failed: {e}")
@@ -281,7 +282,7 @@ class EasterEggRegistry:
             },
             "CLEAR": {
                 "message": "✨ Clear effects!",
-                "display": "CLR",
+                "display": "RTN",
                 "action": self.actions.clear_effects,
                 "cooldown": 3,     # 3 second cooldown
                 "description": "Clear effects (instant, 3s cooldown)"
