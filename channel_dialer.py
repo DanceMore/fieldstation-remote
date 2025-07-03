@@ -189,19 +189,19 @@ class ChannelDialer:
             self.display.send_display_command("LED:ack")
             self.current_channel = channel
             self._update_display(channel)
+
+            # Send command...
+            write_json_to_socket({
+                "command": "direct",
+                "channel": channel,
+                "valid": is_valid,
+                "fallback_channel": self.current_channel if not is_valid else None,
+                "timestamp": time.time()
+            })
         else:
             print(f"❌ Invalid channel: {channel}")
             self.display.send_display_command("LED:nack")
             self._show_error("NOPE")
-
-        # Send command regardless - let TV decide final behavior
-        write_json_to_socket({
-            "command": "direct",
-            "channel": channel,
-            "valid": is_valid,
-            "fallback_channel": self.current_channel if not is_valid else None,
-            "timestamp": time.time()
-        })
 
     def _change_channel(self, direction):
         """Generic channel change handler"""
