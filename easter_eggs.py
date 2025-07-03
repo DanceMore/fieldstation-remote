@@ -1,5 +1,6 @@
 import time
 import threading
+import random
 from collections import defaultdict
 
 # Import shared utilities
@@ -242,6 +243,28 @@ class EasterEggActions:
         except Exception as e:
             print(f"⚠️ Digital/Analog effect failed: {e}")
 
+    def celestial_mode(self):
+        """6969 - Random celestial object selector (instant)"""
+        celestial_objects = [
+            "MERC", "VNUS", "GAIA", "MARS", "JPTR", "SATN", "URNS", "NPTN", "PLTO",
+            "ARES", "TAUR", "GEMI", "CRAB", "LEOb", "VIRG", "LIBR", "SCRP", "SAGI",
+            "CAPR", "AQUA", "PISC"
+        ]
+        
+        selected_object = random.choice(celestial_objects)
+        print(f"🌌 Celestial mode activated - Selected: {selected_object}")
+        
+        try:
+            # Show selection with cosmic LED effect
+            self.dialer.display.send_display_command("LED:pulse-blue 5")
+            time.sleep(0.5)
+            self.dialer.display.send_display_command(f"DISP:{selected_object}")
+            time.sleep(2)
+            self.dialer.display.send_display_command("LED:starfield 10")
+            print(f"🌌 Displaying celestial object: {selected_object}")
+        except Exception as e:
+            print(f"⚠️ Celestial mode failed: {e}")
+
     def clear_effects(self):
         """CLEAR - Clear effects (instant)"""
         print("✨ Clear effects activated")
@@ -318,6 +341,13 @@ class EasterEggRegistry:
                 "action": self.actions.clear_effects,
                 "cooldown": 2,     # 2 second cooldown
                 "description": "Clear effects (instant, 2s cooldown)"
+            },
+            "6969": {
+                "message": "🌌 Celestial mode!",
+                "display": "STAR",
+                "action": self.actions.celestial_mode,
+                "cooldown": 30,    # 30 second cooldown
+                "description": "Random celestial object (instant, 30s cooldown)"
             }
         }
 
