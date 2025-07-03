@@ -196,8 +196,13 @@ class EasterEggActions:
     def show_404_error(self):
         """404 - Show error page (instant effect)"""
         try:
-            self.dialer._show_error("404")
-            self.dialer._show_error("wtf")
+            self.dialer.display.send_display_command("LED:nack")
+            self.dialer.display.send_display_command("DISP:404")
+            self.dialer.display.send_display_command("LED:nack")
+            self.dialer.display.send_display_command("DISP:huh")
+            self.dialer.display.send_display_command("DISP:.404")
+            self.dialer.display.send_display_command("DISP:.huh")
+            self.dialer.display.send_display_command("LED:nack")
             print("💥 404 error displayed")
         except Exception as e:
             print(f"⚠️ 404 error display failed: {e}")
