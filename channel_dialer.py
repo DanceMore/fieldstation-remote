@@ -244,7 +244,7 @@ class ChannelDialer:
 
     def trigger_immediate_easter_egg(self, easter_egg_id):
         """Trigger an immediate Easter egg (for button presses, not dialing)"""
-        easter_egg = self.easter_registry.trigger_immediate_easter_egg(easter_egg_id)
+        easter_egg = self.easter_registry.trigger_immediate_easter_egg(self, easter_egg_id)
         if not easter_egg:
             print(f"❌ Unknown immediate Easter egg: {easter_egg_id}")
             return False
