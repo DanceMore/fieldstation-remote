@@ -278,11 +278,11 @@ class EasterEggRegistry:
                 "action": self.actions.digital_analog_effect,
                 "cooldown": 3,     # 3 second cooldown
                 "description": "Digital/Analog effect (instant, 3s cooldown)"
-            }
+            },
             "CLEAR": {
                 "message": "✨ Clear effects!",
                 "display": "CLR",
-                "action": self.actions.digital_analog_effect,
+                "action": self.actions.clear_effects,
                 "cooldown": 3,     # 3 second cooldown
                 "description": "Clear effects (instant, 3s cooldown)"
             }
