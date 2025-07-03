@@ -70,7 +70,7 @@ class EasterEggCooldownManager:
         """Check if an effect is currently active"""
         with self.lock:
             return easter_egg_id in self.active_effects
-    
+
     def get_time_until_available(self, easter_egg_id, cooldown_duration):
         """Get time in seconds until Easter egg is available again"""
         with self.lock:
@@ -78,7 +78,7 @@ class EasterEggCooldownManager:
             time_since_last = time.time() - last_time
             remaining = cooldown_duration - time_since_last
             return max(0, remaining)
-    
+
     def get_effect_time_remaining(self, easter_egg_id):
         """Get time in seconds until effect expires"""
         with self.lock:
@@ -86,7 +86,7 @@ class EasterEggCooldownManager:
                 return 0
             remaining = self.active_effects[easter_egg_id] - time.time()
             return max(0, remaining)
-    
+
     def force_cleanup(self, easter_egg_id):
         """Manually clean up an effect"""
         with self.lock:
@@ -95,7 +95,7 @@ class EasterEggCooldownManager:
                 del self.cleanup_timers[easter_egg_id]
             if easter_egg_id in self.active_effects:
                 del self.active_effects[easter_egg_id]
-    
+
     def cleanup_all(self):
         """Clean up all active effects and timers"""
         with self.lock:
@@ -106,11 +106,11 @@ class EasterEggCooldownManager:
 
 class EasterEggActions:
     """Enhanced Easter egg actions with expiration support"""
-    
+
     def __init__(self, dialer):
         self.dialer = dialer
         # Note: cooldown_manager will be accessed via dialer.cooldown_manager
-    
+
     def emergency_mode(self):
         """911 - Emergency broadcast mode with 30 min duration"""
         try:
@@ -121,7 +121,7 @@ class EasterEggActions:
             print("🚨 Emergency LED effects active for 30 minutes")
         except Exception as e:
             print(f"⚠️ Emergency mode failed: {e}")
-    
+
     def _cleanup_emergency_mode(self):
         """Cleanup for emergency mode"""
         try:
@@ -129,7 +129,7 @@ class EasterEggActions:
             print("🚨 Emergency mode effects cleared")
         except Exception as e:
             print(f"⚠️ Emergency cleanup failed: {e}")
-    
+
     def demon_mode(self):
         """666 - Demon mode with visual effects for 15 minutes"""
         print("😈 Demon mode activated")
@@ -139,7 +139,7 @@ class EasterEggActions:
             print("😈 Demon effects active for 15 minutes")
         except Exception as e:
             print(f"⚠️ Demon mode failed: {e}")
-    
+
     def _cleanup_demon_mode(self):
         """Cleanup for demon mode"""
         try:
@@ -148,7 +148,7 @@ class EasterEggActions:
             print("😈 Demon mode effects cleared")
         except Exception as e:
             print(f"⚠️ Demon cleanup failed: {e}")
-    
+
     def party_time(self):
         """420 - Party mode with effects for 20 minutes"""
         print("🎉 Party mode activated")
@@ -163,7 +163,7 @@ class EasterEggActions:
             print("🎉 Party effects active for 20 minutes")
         except Exception as e:
             print(f"⚠️ Party mode failed: {e}")
-    
+
     def _cleanup_party_time(self):
         """Cleanup for party mode"""
         try:
@@ -172,28 +172,28 @@ class EasterEggActions:
             print("🎉 Party mode effects cleared")
         except Exception as e:
             print(f"⚠️ Party cleanup failed: {e}")
-    
+
     def full_reset(self):
         """0000 - Complete system reset (instant effect + cleanup all)"""
         try:
             # Force cleanup of ALL active effects
             self.dialer.cooldown_manager.cleanup_all()
-            
+
             # Clear LED effects
             self.dialer.display.send_display_command("LED:off")
             print("🔄 LED reset to off")
-            
+
             # Reset channel to first valid
             self.dialer.tune_to_channel(1)
             print("🔄 Channel reset to first valid")
-            
+
             # Clear MPV effects
             send_key_to_mpv('h')
             print("🔄 All effects cleared and system reset")
-            
+
         except Exception as e:
             print(f"⚠️ Reset operation failed: {e}")
-    
+
     def show_404_error(self):
         """404 - Show error page (instant effect)"""
         try:
@@ -233,7 +233,7 @@ class EasterEggActions:
             print("💥 404 error displayed")
         except Exception as e:
             print(f"⚠️ 404 error display failed: {e}")
-    
+
     def digital_analog_effect(self):
         """DIGITAL_ANALOG - Digital/Analog visual effect (instant)"""
         print("✨ Digital/Analog effect activated")
@@ -250,10 +250,10 @@ class EasterEggActions:
             "ARES", "TAUR", "GEMI", "CRAB", "LEOb", "VIRG", "LIBR", "SCRP", "SAGI",
             "CAPR", "AQUA", "PISC"
         ]
-        
+
         selected_object = random.choice(celestial_objects)
         print(f"🌌 Celestial mode activated - Selected: {selected_object}")
-        
+
         try:
             # Show selection with cosmic LED effect
             self.dialer.display.send_display_command("LED:pulse-blue 5")
@@ -272,10 +272,10 @@ class EasterEggActions:
             "GOOD", "BAD", "PROB", "NEVA", "YOLO", "HMPH", "OBVI", "NADA",
             "DEFS", "RELY", "SKIP", "FINE", "COOL", "NOPE", "YEAH", "PASS"
         ]
-        
+
         selected_response = random.choice(responses)
         print(f"🎱 Magic 8 Ball activated - Response: {selected_response}")
-        
+
         try:
             # Show thinking animation
             self.dialer.display.send_display_command("LED:thinking 10")
@@ -286,7 +286,6 @@ class EasterEggActions:
             print(f"🎱 Magic 8 Ball says: {selected_response}")
         except Exception as e:
             print(f"⚠️ Magic 8 Ball failed: {e}")
-
 
     def clear_effects(self):
         """CLEAR - Clear effects (instant)"""
@@ -299,7 +298,7 @@ class EasterEggActions:
 
 class EasterEggRegistry:
     """Enhanced registry with cooldown and expiration support"""
-    
+
     def __init__(self, actions):
         self.actions = actions
         self._registry = {
@@ -394,7 +393,7 @@ class EasterEggRegistry:
         config = self.get_easter_egg(sequence)
         if not config:
             return False
-        
+
         # Check if on cooldown
         if not dialer.cooldown_manager.can_activate(sequence, config["cooldown"]):
             dialer.display.send_display_command("LED:nack")
@@ -410,7 +409,7 @@ class EasterEggRegistry:
 
             dialer.display.send_display_command(f"DISP:{disp_text}")
             return False
-        
+
         # Display the message and show on display
         print(config["message"])
         if "display" in config:
@@ -418,7 +417,7 @@ class EasterEggRegistry:
                 dialer.display.send_display_command(f"DISP:{config['display']}")
             except Exception as e:
                 print(f"⚠️ Display update failed: {e}")
-        
+
         # Activate the easter egg in the cooldown manager
         dialer.cooldown_manager.activate_easter_egg(
             sequence, 
