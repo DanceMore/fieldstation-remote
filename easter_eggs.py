@@ -8,50 +8,50 @@ from utils import safe_execute, send_key_to_mpv
 
 class EasterEggCooldownManager:
     """Manages cooldowns, expirations, and automatic cleanup for Easter eggs"""
-    
+
     def __init__(self):
         # Track when each Easter egg was last activated
         self.last_activation = {}
-        
+
         # Track active effects and their expiration times
         self.active_effects = {}
-        
+
         # Track cleanup timers for automatic expiration
         self.cleanup_timers = {}
-        
+
         # Lock for thread safety
         self.lock = threading.Lock()
-    
+
     def can_activate(self, easter_egg_id, cooldown_duration):
         """Check if Easter egg can be activated (not in cooldown)"""
         with self.lock:
             last_time = self.last_activation.get(easter_egg_id, 0)
             time_since_last = time.time() - last_time
             return time_since_last >= cooldown_duration
-    
+
     def activate_easter_egg(self, easter_egg_id, cooldown_duration, effect_duration=None, cleanup_callback=None):
         """Activate Easter egg and set up expiration if needed"""
         with self.lock:
             now = time.time()
             self.last_activation[easter_egg_id] = now
-            
+
             # If this has an expiring effect, set up automatic cleanup
             if effect_duration and cleanup_callback:
                 # Cancel any existing cleanup timer for this effect
                 if easter_egg_id in self.cleanup_timers:
                     self.cleanup_timers[easter_egg_id].cancel()
-                
+
                 # Set expiration time
                 self.active_effects[easter_egg_id] = now + effect_duration
-                
+
                 # Set up cleanup timer
                 cleanup_timer = threading.Timer(effect_duration, self._cleanup_effect, 
                                                args=[easter_egg_id, cleanup_callback])
                 cleanup_timer.start()
                 self.cleanup_timers[easter_egg_id] = cleanup_timer
-                
+
                 print(f"⏰ Effect '{easter_egg_id}' will expire in {effect_duration/60:.1f} minutes")
-    
+
     def _cleanup_effect(self, easter_egg_id, cleanup_callback):
         """Internal method to clean up expired effects"""
         with self.lock:
@@ -59,13 +59,13 @@ class EasterEggCooldownManager:
                 del self.active_effects[easter_egg_id]
             if easter_egg_id in self.cleanup_timers:
                 del self.cleanup_timers[easter_egg_id]
-        
+
         print(f"⏰ Effect '{easter_egg_id}' has expired - cleaning up")
         try:
             cleanup_callback()
         except Exception as e:
             print(f"⚠️ Cleanup failed for {easter_egg_id}: {e}")
-    
+ 
     def is_effect_active(self, easter_egg_id):
         """Check if an effect is currently active"""
         with self.lock:
@@ -265,6 +265,29 @@ class EasterEggActions:
         except Exception as e:
             print(f"⚠️ Celestial mode failed: {e}")
 
+    def magic_8_ball(self):
+        """8888 - Magic 8 Ball with random responses (instant)"""
+        responses = [
+            "YES", "NO", "MAYB", "L8R", "SURE", "NOPE", "DUNNO", "WAIT",
+            "GOOD", "BAD", "PROB", "NEVA", "YOLO", "HMPH", "OBVI", "NADA",
+            "DEFS", "RELY", "SKIP", "FINE", "COOL", "NOPE", "YEAH", "PASS"
+        ]
+        
+        selected_response = random.choice(responses)
+        print(f"🎱 Magic 8 Ball activated - Response: {selected_response}")
+        
+        try:
+            # Show thinking animation
+            self.dialer.display.send_display_command("LED:thinking 10")
+            self.dialer.display.send_display_command("DISP:8888")
+            time.sleep(2)
+            # Show the response
+            self.dialer.display.send_display_command(f"DISP:{selected_response}")
+            print(f"🎱 Magic 8 Ball says: {selected_response}")
+        except Exception as e:
+            print(f"⚠️ Magic 8 Ball failed: {e}")
+
+
     def clear_effects(self):
         """CLEAR - Clear effects (instant)"""
         print("✨ Clear effects activated")
@@ -328,6 +351,20 @@ class EasterEggRegistry:
                 "cooldown": 60,    # 1 min cooldown
                 "description": "404 error (instant, 1m cooldown)"
             },
+            "6969": {
+                "message": "🌌 Celestial mode!",
+                "display": "STAR",
+                "action": self.actions.celestial_mode,
+                "cooldown": 30,    # 30 second cooldown
+                "description": "Random celestial object (instant, 30s cooldown)"
+            },
+            "8888": {
+                "message": "🎱 Magic 8 Ball!",
+                "display": "8888",
+                "action": self.actions.magic_8_ball,
+                "cooldown": 5,     # 5 second cooldown
+                "description": "Magic 8 Ball (instant, 5s cooldown)"
+            },
             "DIGITAL_ANALOG": {
                 "message": "✨ Digital/Analog effect!",
                 "display": "8bit",
@@ -342,13 +379,6 @@ class EasterEggRegistry:
                 "cooldown": 2,     # 2 second cooldown
                 "description": "Clear effects (instant, 2s cooldown)"
             },
-            "6969": {
-                "message": "🌌 Celestial mode!",
-                "display": "STAR",
-                "action": self.actions.celestial_mode,
-                "cooldown": 30,    # 30 second cooldown
-                "description": "Random celestial object (instant, 30s cooldown)"
-            }
         }
 
     def get_easter_egg(self, sequence):
@@ -396,14 +426,14 @@ class EasterEggRegistry:
             config.get("duration"), 
             config.get("cleanup")
         )
-        
+
         # Execute the action
         try:
             config["action"]()
         except Exception as e:
             print(f"⚠️ Easter egg action failed: {e}")
             # If action failed, we should still respect the cooldown
-        
+
         return True
 
     def get_status_info(self, dialer):
@@ -413,7 +443,7 @@ class EasterEggRegistry:
             remaining_cooldown = dialer.cooldown_manager.get_time_until_available(egg_id, config["cooldown"])
             remaining_effect = dialer.cooldown_manager.get_effect_time_remaining(egg_id)
             is_active = dialer.cooldown_manager.is_effect_active(egg_id)
-            
+
             status[egg_id] = {
                 "description": config["description"],
                 "cooldown_remaining": remaining_cooldown,
@@ -422,7 +452,7 @@ class EasterEggRegistry:
                 "available": remaining_cooldown == 0
             }
         return status
-    
+
     def add_easter_egg(self, sequence, message, display, action_func, cooldown=60):
         """Add a custom Easter egg at runtime"""
         self._registry[sequence] = {
@@ -432,7 +462,7 @@ class EasterEggRegistry:
             "cooldown": cooldown,
             "description": f"Custom Easter egg ({cooldown}s cooldown)"
         }
-    
+
     def list_easter_eggs(self):
         """List all available Easter eggs"""
         return {seq: config["description"] for seq, config in self._registry.items()}
