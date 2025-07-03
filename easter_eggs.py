@@ -310,10 +310,12 @@ class EasterEggRegistry:
             seconds = remaining % 60
             if minutes > 0:
                 print(f"⏰ {sequence} still on cooldown for {minutes:.0f}m {seconds:.0f}s")
-                dialer.display.send_display_command(f"DISP:{minutes:.0f}{seconds:.0f}")
+                disp_text = f"{int(minutes):02d}{int(seconds):02d}" # Format as MMSS with zero-padding
             else:
                 print(f"⏰ {sequence} still on cooldown for {seconds:.0f}s")
-                dialer.display.send_display_command(f"DISP:{seconds:.0f}")
+                disp_text = f"00{int(seconds):02d}" # Format as 00SS with zero-padding
+
+            dialer.display.send_display_command(f"DISP:{disp_text}")
             return False
         
         # Display the message and show on display
