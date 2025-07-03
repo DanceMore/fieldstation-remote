@@ -92,25 +92,20 @@ class ChannelDialer:
         return (time.time() - self.last_easter_egg_time) < self.easter_egg_debounce
 
     def _execute_easter_egg(self, sequence):
-        """Execute Easter egg with proper error handling and cooldown"""
+        """Execute Easter egg with proper cooldown handling"""
         if not self.easter_registry.is_easter_egg(sequence):
             return False
 
-        easter_egg = self.easter_registry.get_easter_egg(sequence)
-        print(f"🎯 {easter_egg['message']}")
-        self._update_display(easter_egg['display'], is_text=True)
-
-        try:
-            easter_egg['action']()
-        except Exception as e:
-            print(f"⚠️ Easter egg action failed: {e}")
-
-        # Set cooldown timestamp
-        self.last_easter_egg_time = time.time()
+        # Use the registry's trigger method which handles cooldowns properly
+        success = self.easter_registry.trigger_easter_egg(self, sequence)
         
-        time.sleep(1)
-        self._update_display(self.current_channel)
-        return True
+        if success:
+            # Set debounce timestamp only if Easter egg actually executed
+            self.last_easter_egg_time = time.time()
+            time.sleep(1)
+            self._update_display(self.current_channel)
+        
+        return success
 
     def _reset_to_first_channel(self):
         """Reset to first valid channel"""
@@ -244,28 +239,43 @@ class ChannelDialer:
 
     def trigger_immediate_easter_egg(self, easter_egg_id):
         """Trigger an immediate Easter egg (for button presses, not dialing)"""
-        easter_egg = self.easter_registry.trigger_immediate_easter_egg(self, easter_egg_id)
-        if not easter_egg:
+        config = self.easter_registry.get_easter_egg(easter_egg_id)
+        if not config:
             print(f"❌ Unknown immediate Easter egg: {easter_egg_id}")
             return False
 
-        # Check cooldown
-        if not self.cooldown_manager.can_activate(easter_egg_id, easter_egg['cooldown']):
-            remaining = self.cooldown_manager.get_time_until_available(easter_egg_id, easter_egg['cooldown'])
-            print(f"⏳ {easter_egg_id} still in cooldown ({remaining:.1f}s remaining)")
+        # Check cooldown using the cooldown manager
+        if not self.cooldown_manager.can_activate(easter_egg_id, config['cooldown']):
+            remaining = self.cooldown_manager.get_time_until_available(easter_egg_id, config['cooldown'])
+            minutes = remaining // 60
+            seconds = remaining % 60
+            if minutes > 0:
+                print(f"⏳ {easter_egg_id} still in cooldown ({minutes:.0f}m {seconds:.0f}s remaining)")
+            else:
+                print(f"⏳ {easter_egg_id} still in cooldown ({seconds:.0f}s remaining)")
             return False
 
-        print(f"🎯 {easter_egg['message']}")
-        self._update_display(easter_egg['display'], is_text=True)
+        print(f"🎯 {config['message']}")
+        if self.display:
+            self._update_display(config['display'], is_text=True)
 
         try:
-            easter_egg['action']()
-            self.cooldown_manager.activate_easter_egg(easter_egg_id, easter_egg['cooldown'], easter_egg.get('duration'), easter_egg.get('cleanup'))
+            # Activate the cooldown first
+            self.cooldown_manager.activate_easter_egg(
+                easter_egg_id, 
+                config['cooldown'], 
+                config.get('duration'), 
+                config.get('cleanup')
+            )
+            
+            # Then execute the action
+            config['action']()
+            
             time.sleep(0.5)
             self._update_display(self.current_channel)
             return True
         except Exception as e:
-            print(f"⚠️ Immediate Easter egg failed: {e}")
+            print(f"⚠️ Immediate easter egg failed: {e}")
             return False
 
     # Convenience methods for Easter egg management
@@ -276,3 +286,7 @@ class ChannelDialer:
     def list_easter_eggs(self):
         """List all available Easter eggs"""
         return self.easter_registry.list_easter_eggs()
+    
+    def get_easter_egg_status(self):
+        """Get detailed status of all Easter eggs"""
+        return self.easter_registry.get_status_info(self)

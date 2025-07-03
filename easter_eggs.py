@@ -172,16 +172,6 @@ class EasterEggActions:
         except Exception as e:
             print(f"⚠️ Party cleanup failed: {e}")
     
-    #def lucky_mode(self):
-    #    """777 - Lucky mode (instant effect, no duration)"""
-    #    print("🍀 Lucky mode activated")
-    #    # This is an instant effect, no cleanup needed
-    
-    #def test_mode(self):
-    #    """1234 - Test mode (instant effect)"""
-    #    print("🧪 Test mode activated")
-    #    # Run diagnostics, instant effect
-    
     def full_reset(self):
         """0000 - Complete system reset (instant effect + cleanup all)"""
         try:
@@ -193,7 +183,6 @@ class EasterEggActions:
             print("🔄 LED reset to off")
             
             # Reset channel to first valid
-            #self.dialer._reset_to_first_channel()
             self.dialer.tune_to_channel(1)
             print("🔄 Channel reset to first valid")
             
@@ -253,13 +242,6 @@ class EasterEggRegistry:
                 "duration": 1200,  # 20 minutes active
                 "description": "Party mode (20m active, 40m cooldown)"
             },
-            #"777": {
-            #    "message": "🍀 LUCKY!",
-            #    "display": "777",
-            #    "action": self.actions.lucky_mode,
-            #    "cooldown": 300,   # 5 min cooldown for instant effects
-            #    "description": "Lucky mode (instant, 5m cooldown)"
-            #},
             "1234": {
                 "message": "🧪 TEST MODE! (aka reset)",
                 "display": " RST",
@@ -340,30 +322,6 @@ class EasterEggRegistry:
         
         return True
 
-    def trigger_immediate_easter_egg(self, dialer, easter_egg_id):
-        """Trigger an Easter egg immediately by ID (for button presses) - bypasses cooldown"""
-        if easter_egg_id in self._registry:
-            config = self._registry[easter_egg_id]
-            
-            print(f"🔥 Immediate trigger: {config['message']}")
-            
-            # Still register activation for cooldown tracking
-            dialer.cooldown_manager.activate_easter_egg(
-                easter_egg_id, 
-                config["cooldown"], 
-                config.get("duration"), 
-                config.get("cleanup")
-            )
-            
-            # Execute the action
-            try:
-                config["action"]()
-            except Exception as e:
-                print(f"⚠️ Immediate easter egg action failed: {e}")
-            
-            return True
-        return False
-
     def get_status_info(self, dialer):
         """Get status information about all easter eggs"""
         status = {}
@@ -380,3 +338,17 @@ class EasterEggRegistry:
                 "available": remaining_cooldown == 0
             }
         return status
+    
+    def add_easter_egg(self, sequence, message, display, action_func, cooldown=60):
+        """Add a custom Easter egg at runtime"""
+        self._registry[sequence] = {
+            "message": message,
+            "display": display,
+            "action": action_func,
+            "cooldown": cooldown,
+            "description": f"Custom Easter egg ({cooldown}s cooldown)"
+        }
+    
+    def list_easter_eggs(self):
+        """List all available Easter eggs"""
+        return {seq: config["description"] for seq, config in self._registry.items()}
