@@ -301,8 +301,6 @@ class EasterEggRegistry:
         config = self.get_easter_egg(sequence)
         if not config:
             return False
-
-        dialer.clear_queue()
         
         # Check if on cooldown
         if not dialer.cooldown_manager.can_activate(sequence, config["cooldown"]):
