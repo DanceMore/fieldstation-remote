@@ -197,6 +197,7 @@ class EasterEggActions:
         """404 - Show error page (instant effect)"""
         try:
             self.dialer._show_error("404")
+            self.dialer._show_error("wtf")
             print("💥 404 error displayed")
         except Exception as e:
             print(f"⚠️ 404 error display failed: {e}")
@@ -230,41 +231,41 @@ class EasterEggRegistry:
                 "display": "SHIT",
                 "action": self.actions.emergency_mode,
                 "cleanup": self.actions._cleanup_emergency_mode,
-                "cooldown": 3600,  # 1 hour cooldown
-                "duration": 1800,  # 30 minutes active
-                "description": "Emergency mode (30m active, 1h cooldown)"
+                "cooldown": 3600, # 1 hour cooldown
+                "duration": 10,
+                "description": "Emergency mode (10s active, 1h cooldown)"
             },
             "666": {
                 "message": "😈 DEMON MODE!",
                 "display": "666",
                 "action": self.actions.demon_mode,
                 "cleanup": self.actions._cleanup_demon_mode,
-                "cooldown": 1800,  # 30 min cooldown
-                "duration": 900,   # 15 minutes active
-                "description": "Demon mode (15m active, 30m cooldown)"
+                "cooldown": 1800, # 30 min cooldown
+                "duration": 300,  # 5 minutes active
+                "description": "Demon mode (5m active, 30m cooldown)"
             },
             "420": {
                 "message": "🎉 PARTY TIME!",
                 "display": "YAH",
                 "action": self.actions.party_time,
                 "cleanup": self.actions._cleanup_party_time,
-                "cooldown": 2400,  # 40 min cooldown
+                "cooldown": 2520,  # 42 min cooldown
                 "duration": 1200,  # 20 minutes active
-                "description": "Party mode (20m active, 40m cooldown)"
+                "description": "Party mode (20m active, 42m cooldown)"
             },
             "1234": {
                 "message": "🧪 TEST MODE! (aka reset)",
                 "display": " RST",
                 "action": self.actions.full_reset,
-                "cooldown": 3,
-                "description": "Test mode (aka reset) (instant, 3s cooldown)"
+                "cooldown": 2,
+                "description": "Test mode (aka reset) (instant, 2s cooldown)"
             },
             "0000": {
                 "message": "🔄 RESET!",
                 "display": "RST",
                 "action": self.actions.full_reset,
-                "cooldown": 3,
-                "description": "Full reset (instant, 3s cooldown)"
+                "cooldown": 2,
+                "description": "Full reset (instant, 2s cooldown)"
             },
             "404": {
                 "message": "💥 ERROR!",
@@ -277,15 +278,15 @@ class EasterEggRegistry:
                 "message": "✨ Digital/Analog effect!",
                 "display": "8bit",
                 "action": self.actions.digital_analog_effect,
-                "cooldown": 3,     # 3 second cooldown
-                "description": "Digital/Analog effect (instant, 3s cooldown)"
+                "cooldown": 2,     # 2 second cooldown
+                "description": "Digital/Analog effect (instant, 2s cooldown)"
             },
             "CLEAR": {
                 "message": "✨ Clear effects!",
                 "display": "RTN",
                 "action": self.actions.clear_effects,
-                "cooldown": 3,     # 3 second cooldown
-                "description": "Clear effects (instant, 3s cooldown)"
+                "cooldown": 2,     # 2 second cooldown
+                "description": "Clear effects (instant, 2s cooldown)"
             }
         }
 
