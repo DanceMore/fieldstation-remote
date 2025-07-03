@@ -134,7 +134,7 @@ class EasterEggActions:
         print("😈 Demon mode activated")
         try:
             send_key_to_mpv('m')
-            self.dialer.display.send_display_command("LED:red-pulse 5")
+            self.dialer.display.send_display_command("LED:pulse-red 20")
             print("😈 Demon effects active for 15 minutes")
         except Exception as e:
             print(f"⚠️ Demon mode failed: {e}")
@@ -205,6 +205,7 @@ class EasterEggActions:
         """DIGITAL_ANALOG - Digital/Analog visual effect (instant)"""
         print("✨ Digital/Analog effect activated")
         try:
+            self.dialer.display.send_display_command("LED:matrix 20")
             send_key_to_mpv('d')
         except Exception as e:
             print(f"⚠️ Digital/Analog effect failed: {e}")
