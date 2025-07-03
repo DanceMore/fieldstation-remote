@@ -289,7 +289,7 @@ class EasterEggRegistry:
         
         # Check if on cooldown
         if not dialer.cooldown_manager.can_activate(sequence, config["cooldown"]):
-            dialer.display.send_display_command("LED:ack")
+            dialer.display.send_display_command("LED:nack")
             remaining = dialer.cooldown_manager.get_time_until_available(sequence, config["cooldown"])
             minutes = remaining // 60
             seconds = remaining % 60

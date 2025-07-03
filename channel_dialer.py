@@ -181,12 +181,12 @@ class ChannelDialer:
     def tune_to_channel(self, channel):
         """Tune to specific channel with validation"""
         print(f"📺 Attempting to tune to channel {channel}")
-        self.display.send_display_command("LED:ack")
 
         is_valid = channel in VALID_CHANNELS
 
         if is_valid:
             print(f"✅ Valid channel: {channel}")
+            self.display.send_display_command("LED:ack")
             self.current_channel = channel
             self._update_display(channel)
         else:
