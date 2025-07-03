@@ -153,7 +153,7 @@ class EasterEggActions:
         print("🎉 Party mode activated")
         try:
             send_key_to_mpv('b')
-            self.dialer.display.send_display_command("LED:rainbow 30")
+            self.dialer.display.send_display_command("LED:rainbow 60")
             time.sleep(1)
             self.dialer.display.send_display_command("DISP:RAST")
             time.sleep(1)
