@@ -191,6 +191,7 @@ class ChannelDialer:
             self._update_display(channel)
         else:
             print(f"❌ Invalid channel: {channel}")
+            self.display.send_display_command("LED:nack")
             self._show_error("NOPE")
 
         # Send command regardless - let TV decide final behavior
