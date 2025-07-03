@@ -210,6 +210,14 @@ class EasterEggActions:
         except Exception as e:
             print(f"⚠️ Digital/Analog effect failed: {e}")
 
+    def clear_effects(self):
+        """CLEAR - Clear effects (instant)"""
+        print("✨ Clear effects activated")
+        try:
+            send_key_to_mpv('h')
+        except Exception as e:
+            print(f"⚠️ Clear effects failed: {e}")
+
 class EasterEggRegistry:
     """Enhanced registry with cooldown and expiration support"""
     
@@ -270,6 +278,13 @@ class EasterEggRegistry:
                 "action": self.actions.digital_analog_effect,
                 "cooldown": 3,     # 3 second cooldown
                 "description": "Digital/Analog effect (instant, 3s cooldown)"
+            }
+            "CLEAR": {
+                "message": "✨ Clear effects!",
+                "display": "CLR",
+                "action": self.actions.digital_analog_effect,
+                "cooldown": 3,     # 3 second cooldown
+                "description": "Clear effects (instant, 3s cooldown)"
             }
         }
 

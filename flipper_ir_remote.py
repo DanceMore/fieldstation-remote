@@ -101,6 +101,13 @@ REMOTE_CONFIGS = {
             "0x0D": "DIGITAL_ANALOG",
         }
     },
+    "sony_0x97": {
+        "protocol": "SIRC",
+        "address": "0x97",
+        "mappings": {
+            "0x23": "CLEAR",
+        }
+    },
 }
 
 class IRRemoteMapper:
@@ -178,6 +185,7 @@ class IRRemoteMapper:
             'DIGIT_8': lambda: self._handle_digit(8),
             'DIGIT_9': lambda: self._handle_digit(9),
             'DIGITAL_ANALOG': self._handle_digital_analog,
+            'CLEAR': self._handle_clear_mode,
         }
     
     def _boot_sequence(self):
@@ -267,6 +275,11 @@ class IRRemoteMapper:
         """Handle DIGITAL_ANALOG button press through Easter egg system"""
         print("📺 Digital/Analog button pressed")
         self.channel_dialer.trigger_immediate_easter_egg('DIGITAL_ANALOG')
+
+    def _handle_clear_mode(self):
+        """Handle RETURN button press through Easter egg system"""
+        print("📺 RETURN button pressed")
+        self.channel_dialer.trigger_immediate_easter_egg('CLEAR')
     
     def _handle_unmapped_event(self, event_name):
         print(f"❓ Unmapped event: {event_name}")
