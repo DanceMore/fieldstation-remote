@@ -245,8 +245,11 @@ class EasterEggActions:
 
     def celestial_mode(self):
         """6969 - Random celestial object selector (instant)"""
+        # VNUS
+        # MERC
+        # MARS
         celestial_objects = [
-            "MERC", "VNUS", "GAIA", "MARS", "JPTR", "SATN", "URNS", "NPTN", "PLTO",
+            "GAIA", "JPTR", "SATN", "URNS", "NPTN", "PLTO",
             "ARES", "TAUR", "GEMI", "CRAB", "LEOb", "VIRG", "LIBR", "SCRP", "SAGI",
             "CAPR", "AQUA", "PISC"
         ]
@@ -256,11 +259,11 @@ class EasterEggActions:
 
         try:
             # Show selection with cosmic LED effect
-            self.dialer.display.send_display_command("LED:pulse-blue 5")
-            time.sleep(0.5)
+            self.dialer.display.send_display_command("LED:pulse-blue 10")
+            time.sleep(0.8)
             self.dialer.display.send_display_command(f"DISP:{selected_object}")
-            time.sleep(2)
-            self.dialer.display.send_display_command("LED:starfield 10")
+            time.sleep(4)
+            #self.dialer.display.send_display_command("LED:starfield 10")
             print(f"🌌 Displaying celestial object: {selected_object}")
         except Exception as e:
             print(f"⚠️ Celestial mode failed: {e}")
@@ -278,12 +281,13 @@ class EasterEggActions:
 
         try:
             # Show thinking animation
-            self.dialer.display.send_display_command("LED:thinking 10")
+            self.dialer.display.send_display_command("LED:thinking 3")
             self.dialer.display.send_display_command("DISP:8888")
-            time.sleep(2)
+            time.sleep(3)
             # Show the response
             self.dialer.display.send_display_command(f"DISP:{selected_response}")
             print(f"🎱 Magic 8 Ball says: {selected_response}")
+            time.sleep(3)
         except Exception as e:
             print(f"⚠️ Magic 8 Ball failed: {e}")
 
@@ -354,14 +358,21 @@ class EasterEggRegistry:
                 "message": "🌌 Celestial mode!",
                 "display": "STAR",
                 "action": self.actions.celestial_mode,
-                "cooldown": 30,    # 30 second cooldown
+                "cooldown": 20,    # 30 second cooldown
+                "description": "Random celestial object (instant, 30s cooldown)"
+            },
+            "9696": {
+                "message": "🌌 Celestial mode!",
+                "display": "STAR",
+                "action": self.actions.celestial_mode,
+                "cooldown": 20,    # 30 second cooldown
                 "description": "Random celestial object (instant, 30s cooldown)"
             },
             "8888": {
                 "message": "🎱 Magic 8 Ball!",
                 "display": "8888",
                 "action": self.actions.magic_8_ball,
-                "cooldown": 5,     # 5 second cooldown
+                "cooldown": 5, # 5 second cooldown
                 "description": "Magic 8 Ball (instant, 5s cooldown)"
             },
             "DIGITAL_ANALOG": {
