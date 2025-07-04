@@ -271,8 +271,8 @@ class EasterEggActions:
     def magic_8_ball(self):
         """8888 - Magic 8 Ball with random responses (instant)"""
         responses = [
-            "YES", "NO", "MAYB", "L8R", "SURE", "NOPE", "DUNNO", "WAIT",
-            "GOOD", "BAD", "PROB", "NEVA", "YOLO", "HMPH", "OBVI", "NADA",
+            "YES", "NO", "MAYB", "L8R", "SURE", "NOPE", "DUNO", "WAIT",
+            "GOOD", "BAD", "PROB", "NEVA", "YOLO", "NAAH", "OBVI", "NADA",
             "DEFS", "RELY", "SKIP", "FINE", "COOL", "NOPE", "YEAH", "PASS"
         ]
 
