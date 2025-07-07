@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Channel Dialer - Intelligent digit queue system for channel switching
+Enhanced to support letter inputs (A, B, C, D) for Easter egg sequences
 """
 
 import time
@@ -123,7 +124,7 @@ class ChannelDialer:
             self.last_digit_time = time.time()
 
             current_sequence = self._get_current_sequence()
-            self._update_display(current_sequence)
+            self._update_display(current_sequence, is_text=True)  # Always show as text now
 
             self._cancel_timer()  # Cancel any existing timer
 
@@ -138,6 +139,33 @@ class ChannelDialer:
             self.timer = threading.Timer(self.digit_timeout, self._process_channel)
             self.timer.start()
 
+    def add_letter(self, letter):
+        """Add letter (A, B, C, D) to queue - letters can only trigger Easter eggs"""
+        with self._safe_lock():
+            # Ignore letters during Easter egg debounce
+            if self._is_in_easter_egg_debounce():
+                print(f"🔄 Ignoring letter {letter} - Easter egg debounce active")
+                return
+
+            self.digit_queue.append(letter)
+            self.last_digit_time = time.time()
+
+            current_sequence = self._get_current_sequence()
+            self._update_display(current_sequence, is_text=True)
+
+            self._cancel_timer()  # Cancel any existing timer
+
+            # Check for immediate Easter egg matches
+            if self._execute_easter_egg(current_sequence):
+                self.digit_queue.clear()
+                self._cancel_timer()  # Double-cancel to be absolutely sure
+                print("🎮 Ready for new input...")
+                return
+
+            # Set timer for processing (will only check Easter eggs if letters are present)
+            self.timer = threading.Timer(self.digit_timeout, self._process_channel)
+            self.timer.start()
+
     def clear_queue(self):
         """Clear the digit queue and reset cooldown"""
         with self._safe_lock():
@@ -146,6 +174,10 @@ class ChannelDialer:
             # Reset Easter egg debounce when manually clearing
             self.last_easter_egg_time = 0
             self._update_display(self.current_channel)
+
+    def _has_letters(self):
+        """Check if current sequence contains any letters"""
+        return any(char.isalpha() for char in self.digit_queue)
 
     def _process_channel(self):
         """Process accumulated digits as channel number"""
@@ -161,7 +193,15 @@ class ChannelDialer:
                 self.timer = None
                 return
 
-            # Process as channel number
+            # If sequence contains letters, it can't be a valid channel
+            if self._has_letters():
+                print(f"❌ Invalid channel sequence (contains letters): {channel_str}")
+                self._show_error("ERR")
+                self.digit_queue.clear()
+                self.timer = None
+                return
+
+            # Process as channel number (only if all digits)
             try:
                 channel_num = int(channel_str)
                 self.tune_to_channel(channel_num)
