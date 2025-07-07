@@ -248,10 +248,11 @@ class EasterEggActions:
         # VNUS
         # MERC
         # MARS
+        # AQUA
         celestial_objects = [
             "GAIA", "JPTR", "SATN", "URNS", "NPTN", "PLTO",
             "ARES", "TAUR", "GEMI", "CRAB", "LEOb", "VIRG", "LIBR", "SCRP", "SAGI",
-            "CAPR", "AQUA", "PISC"
+            "CAPR", "PISC"
         ]
 
         selected_object = random.choice(celestial_objects)
@@ -259,11 +260,10 @@ class EasterEggActions:
 
         try:
             # Show selection with cosmic LED effect
-            self.dialer.display.send_display_command("LED:pulse-blue 10")
-            time.sleep(0.8)
+            self.dialer.display.send_display_command("LED:pulse-blue 7")
+            time.sleep(1.3)
             self.dialer.display.send_display_command(f"DISP:{selected_object}")
-            time.sleep(4)
-            #self.dialer.display.send_display_command("LED:starfield 10")
+            time.sleep(4.7)
             print(f"🌌 Displaying celestial object: {selected_object}")
         except Exception as e:
             print(f"⚠️ Celestial mode failed: {e}")
