@@ -70,12 +70,6 @@ REMOTE_CONFIGS = {
             "0x0D": "DIGIT_8",
             "0x0E": "DIGIT_9",
             "0x11": "DIGIT_0",
-
-            # A, B, C, D button mappings
-            "0x6C": "BUTTON_A",
-            "0x14": "BUTTON_B",
-            "0x15": "BUTTON_C",
-            "0x16": "BUTTON_D",
         }
     },
     "sony": {
@@ -190,10 +184,6 @@ class IRRemoteMapper:
             'DIGIT_7': lambda: self._handle_digit(7),
             'DIGIT_8': lambda: self._handle_digit(8),
             'DIGIT_9': lambda: self._handle_digit(9),
-            'BUTTON_A': self._handle_button_a,
-            'BUTTON_B': self._handle_button_b,
-            'BUTTON_C': self._handle_button_c,
-            'BUTTON_D': self._handle_button_d,
             'DIGITAL_ANALOG': self._handle_digital_analog,
             'CLEAR': self._handle_clear_mode,
         }
@@ -280,23 +270,7 @@ class IRRemoteMapper:
     def _handle_digit(self, digit):
         print(f"{digit}️⃣ Digit {digit}")
         self.channel_dialer.add_digit(digit)
-
-    def _handle_button_a(self):
-        print("🅰️  Button A pressed!")
-        self.channel_dialer.add_letter('A')
-
-    def _handle_button_b(self):
-        print("🅱️  Button B pressed!")
-        self.channel_dialer.add_letter('B')
-
-    def _handle_button_c(self):
-        print("🅲️  Button C pressed!")
-        self.channel_dialer.add_letter('C')
-
-    def _handle_button_d(self):
-        print("🅳️  Button D pressed!")
-        self.channel_dialer.add_letter('D')
-
+    
     def _handle_digital_analog(self):
         """Handle DIGITAL_ANALOG button press through Easter egg system"""
         print("📺 Digital/Analog button pressed")
