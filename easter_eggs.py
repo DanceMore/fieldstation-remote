@@ -249,7 +249,7 @@ class EasterEggActions:
         # AQUA
         celestial_objects = [
             "GAIA", "JPTR", "SATN", "URNS", "NPTN", "PLTO",
-            "ARES", "TAUR", "GEMI", "CRAB", "LEOb", "VIRG", "LIBR", "SCRP", "SAGI",
+            "ARES", "TAUR", "GEMI", "CRAB", "LEO", "VIRG", "LIBR", "SCRP", "SAGI",
             "CAPR", "PISC"
         ]
 
