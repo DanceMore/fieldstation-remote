@@ -348,24 +348,37 @@ class IRRemoteMapper:
                 self.display_queue.show_number(self.channel_dialer.current_channel)
 
             while True:
-                line = self.flipper.readline().decode('utf-8').strip()
-                if not line:
-                    continue
-                if self.args.debug:
-                    print(f"DEBUG: '{line}'")
-                if any(line.startswith(h) for h in ('ir rx', 'Receiving', 'Press Ctrl+C')):
-                    continue
+                try:
+                    line_bytes = self.flipper.readline()
+                    if not line_bytes:
+                        continue
 
-                ir_match = re.match(r'(\w+), A:(0x[0-9A-Fa-f]+), C:(0x[0-9A-Fa-f]+)', line)
-                if ir_match:
-                    protocol, address, command = ir_match.groups()
-                    event, proto, addr, cmd = self.map_ir_signal(protocol, address, command)
-                    current_time = get_now()
+                    try:
+                        line = line_bytes.decode('utf-8').strip()
+                    except UnicodeDecodeError:
+                        print(f"⚠️  Decoding error on line: {line_bytes!r}")
+                        continue
 
-                    if event != self.last_event or (current_time - self.last_event_time) >= self.args.debounce:
-                        self.handle_event(event, proto, addr, cmd)
-                        self.last_event = event
-                        self.last_event_time = current_time
+                    if not line:
+                        continue
+                    if self.args.debug:
+                        print(f"DEBUG: '{line}'")
+                    if any(line.startswith(h) for h in ('ir rx', 'Receiving', 'Press Ctrl+C')):
+                        continue
+
+                    ir_match = re.match(r'(\w+), A:(0x[0-9A-Fa-f]+), C:(0x[0-9A-Fa-f]+)', line)
+                    if ir_match:
+                        protocol, address, command = ir_match.groups()
+                        event, proto, addr, cmd = self.map_ir_signal(protocol, address, command)
+                        current_time = get_now()
+
+                        if event != self.last_event or (current_time - self.last_event_time) >= self.args.debounce:
+                            self.handle_event(event, proto, addr, cmd)
+                            self.last_event = event
+                            self.last_event_time = current_time
+                except Exception as e:
+                    print(f"⚠️  Error in run loop: {e}")
+                    continue
 
         except KeyboardInterrupt:
             print("\nMapper stopped")

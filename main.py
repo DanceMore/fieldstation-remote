@@ -29,6 +29,8 @@ def main():
                         help='Initial display brightness (0-7)')
     parser.add_argument('--mock', action='store_true',
                         help='Use mock serial and avoid physical hardware')
+    parser.add_argument('--chaos', action='store_true',
+                        help='Enable chaos mocking (injects garbage data in mock mode)')
     
     args = parser.parse_args()
     
@@ -36,6 +38,8 @@ def main():
     if args.mock:
         import os
         os.environ["MOCK_MODE"] = "true"
+        if args.chaos:
+            os.environ["CHAOS_MODE"] = "true"
         from mock_serial import MockSerial
         import serial
         serial.Serial = MockSerial
