@@ -1,5 +1,5 @@
 import threading
-import time
+import utils
 from queue import Queue, Empty
 
 class DisplayQueue:
@@ -32,7 +32,7 @@ class DisplayQueue:
                 elif cmd == "brightness":
                     self.display_controller.set_brightness(value)
                 elif cmd == "sleep":
-                    time.sleep(value)
+                    utils.sleep(value)
             except Empty:
                 continue
 

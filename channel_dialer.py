@@ -15,6 +15,7 @@ from utils import safe_execute, write_json_to_socket, get_now, start_timer
 
 # Import Easter egg system
 from easter_eggs import EasterEggCooldownManager, EasterEggActions, EasterEggRegistry
+from state_manager import StateManager
 
 # Configuration
 VALID_CHANNELS = [1, 2, 3, 8, 9, 13]
@@ -24,13 +25,18 @@ DISPLAY_DELAY = 0.4
 
 class ChannelDialer:
     def __init__(self, digit_timeout=DIGIT_TIMEOUT, display_controller=None):
+        self.state = StateManager()
         self.digit_queue = deque()
         self.digit_timeout = digit_timeout
         self.last_digit_time = 0
         self.timer = None
         self.lock = threading.Lock()
         self.display = display_controller
-        self.current_channel = VALID_CHANNELS[0]
+        
+        # Load starting channel from state
+        self.current_channel = self.state.get("current_channel", VALID_CHANNELS[0])
+        if self.current_channel not in VALID_CHANNELS:
+            self.current_channel = VALID_CHANNELS[0]
         
         # Add Easter egg protection
         self.last_easter_egg_time = 0
@@ -188,6 +194,9 @@ class ChannelDialer:
             self.display.send_display_command("LED:ack")
             self.current_channel = channel
             self._update_display(channel)
+            
+            # Save state
+            self.state.update(current_channel=channel)
 
             # Send command...
             write_json_to_socket({
@@ -222,6 +231,9 @@ class ChannelDialer:
         print(f"📺 Channel {display_text}: {self.current_channel} -> {new_channel}")
         self.current_channel = new_channel
         self._update_display(self.current_channel)
+        
+        # Save state
+        self.state.update(current_channel=new_channel)
 
         write_json_to_socket({
             "command": "up" if direction > 0 else "down",

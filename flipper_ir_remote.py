@@ -6,7 +6,6 @@ Maps IR signals to standardized events with intelligent digit queue system and d
 
 import serial
 import sys
-import time
 import re
 import json
 import os
@@ -20,10 +19,13 @@ from display_queue import DisplayQueue
 from channel_dialer import ChannelDialer, VALID_CHANNELS
 
 # Import shared utilities
-from utils import safe_execute, send_key_to_mpv, write_json_to_socket
+import utils
+from utils import safe_execute, send_key_to_mpv, write_json_to_socket, get_now, start_timer
 
-SOCKET_PATH = "/home/appuser/FieldStation42/runtime/channel.socket"
-LOG_PATH = "/home/appuser/FieldStation42/runtime/ir_mapper.log"
+# Make paths portable
+BASE_RUNTIME_PATH = os.environ.get("FIELDSTATION_RUNTIME", "runtime")
+SOCKET_PATH = os.path.join(BASE_RUNTIME_PATH, "channel.socket")
+LOG_PATH = os.path.join(BASE_RUNTIME_PATH, "ir_mapper.log")
 
 # Enhanced remote configurations with more button mappings
 REMOTE_CONFIGS = {
@@ -209,14 +211,14 @@ class IRRemoteMapper:
         print("✨ Next effect!")
         if self.display_controller:
             self.display_controller.display_text("EFuP")
-            threading.Timer(0.5, lambda: self.display_controller.display_number(self.channel_dialer.current_channel)).start()
+            start_timer(0.5, lambda: self.display_controller.display_number(self.channel_dialer.current_channel))
         send_key_to_mpv('c')
     
     def _handle_effect_prev(self):
         print("✨ Previous effect!")
         if self.display_controller:
             self.display_controller.display_text("EFdn")
-            threading.Timer(0.5, lambda: self.display_controller.display_number(self.channel_dialer.current_channel)).start()
+            start_timer(0.5, lambda: self.display_controller.display_number(self.channel_dialer.current_channel))
         send_key_to_mpv('z')
     
     def _handle_volume_up(self):
@@ -235,9 +237,9 @@ class IRRemoteMapper:
         print("⚡ Power toggle!")
         if self.display_controller:
             self.display_controller.clear_display()
-            time.sleep(0.5)
+            utils.sleep(0.5)
             self.display_controller.display_number(self.channel_dialer.current_channel)
-        write_json_to_socket({"command": "power_toggle", "timestamp": time.time()})
+        write_json_to_socket({"command": "power_toggle", "timestamp": get_now()})
     
     def _handle_pause(self):
         print("⏸️  Pause/Play toggle!")
@@ -247,17 +249,17 @@ class IRRemoteMapper:
         print("ℹ️  Info display!")
         if self.display_controller:
             self.display_controller.display_text("INFO")
-            time.sleep(1.5)
+            utils.sleep(1.5)
             self.display_controller.display_number(self.channel_dialer.current_channel)
-        write_json_to_socket({"command": "info", "timestamp": time.time()})
+        write_json_to_socket({"command": "info", "timestamp": get_now()})
     
     def _handle_menu(self):
         print("📋 Menu!")
         if self.display_controller:
             self.display_controller.display_text("MENU")
-            time.sleep(1.5)
+            utils.sleep(1.5)
             self.display_controller.display_number(self.channel_dialer.current_channel)
-        write_json_to_socket({"command": "menu", "timestamp": time.time()})
+        write_json_to_socket({"command": "menu", "timestamp": get_now()})
     
     def _handle_ok(self):
         print("✅ OK/Select!")
@@ -265,7 +267,7 @@ class IRRemoteMapper:
     
     def _handle_back(self):
         print("⬅️  Back!")
-        write_json_to_socket({"command": "back", "timestamp": time.time()})
+        write_json_to_socket({"command": "back", "timestamp": get_now()})
     
     def _handle_digit(self, digit):
         print(f"{digit}️⃣ Digit {digit}")
@@ -328,7 +330,7 @@ class IRRemoteMapper:
             self.flipper.flushInput()
 
             self.flipper.write(b'\x03')
-            time.sleep(1)
+            utils.sleep(1)
             self.flipper.flushInput()
 
             self.flipper.write(b'ir rx\r\n')
@@ -358,7 +360,7 @@ class IRRemoteMapper:
                 if ir_match:
                     protocol, address, command = ir_match.groups()
                     event, proto, addr, cmd = self.map_ir_signal(protocol, address, command)
-                    current_time = time.time()
+                    current_time = get_now()
 
                     if event != self.last_event or (current_time - self.last_event_time) >= self.args.debounce:
                         self.handle_event(event, proto, addr, cmd)
@@ -370,7 +372,7 @@ class IRRemoteMapper:
             self.channel_dialer.clear_queue()  # Clean up any pending timers
             if self.display_controller and self.display_controller.display_serial:
                 self.display_controller.display_text("BYE")
-                time.sleep(1)
+                utils.sleep(1)
                 self.display_controller.clear_display()
         except Exception as e:
             print(f"Error: {e}")

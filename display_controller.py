@@ -3,8 +3,7 @@
 Display Controller - 7-segment display communication via serial
 """
 
-import serial
-import time
+import utils
 import threading
 
 
@@ -25,11 +24,11 @@ class DisplayController:
         try:
             if self.display_device:
                 self.display_serial = serial.Serial(self.display_device, self.baudrate, timeout=1)
-                time.sleep(0.1)  # Give display time to initialize
+                utils.sleep(0.1)  # Give display time to initialize
                 print(f"📟 Display connected on {self.display_device}")
                 # Test the display
                 self.display_text("INIT")
-                time.sleep(0.5)
+                utils.sleep(0.5)
                 self.clear_display()
         except Exception as e:
             print(f"❌ Failed to connect to display: {e}")
