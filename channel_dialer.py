@@ -3,15 +3,15 @@
 Channel Dialer - Intelligent digit queue system for channel switching
 """
 
-import time
 import threading
 import subprocess
 import json
 from collections import deque
 from contextlib import contextmanager
 
-# Import utilities
-from utils import safe_execute, write_json_to_socket
+# Import utilities (including our new time/timer wrappers)
+import utils
+from utils import safe_execute, write_json_to_socket, get_now, start_timer
 
 # Import Easter egg system
 from easter_eggs import EasterEggCooldownManager, EasterEggActions, EasterEggRegistry
@@ -89,7 +89,7 @@ class ChannelDialer:
 
     def _is_in_easter_egg_debounce(self):
         """Check if we're still in Easter egg debounce period"""
-        return (time.time() - self.last_easter_egg_time) < self.easter_egg_debounce
+        return (get_now() - self.last_easter_egg_time) < self.easter_egg_debounce
 
     def _execute_easter_egg(self, sequence):
         """Execute Easter egg with proper cooldown handling"""
@@ -101,8 +101,8 @@ class ChannelDialer:
         
         if success:
             # Set debounce timestamp only if Easter egg actually executed
-            self.last_easter_egg_time = time.time()
-            time.sleep(1)
+            self.last_easter_egg_time = get_now()
+            utils.sleep(1)
             self._update_display(self.current_channel)
         
         return success
@@ -120,7 +120,7 @@ class ChannelDialer:
                 return
 
             self.digit_queue.append(str(digit))
-            self.last_digit_time = time.time()
+            self.last_digit_time = get_now()
 
             current_sequence = self._get_current_sequence()
             self._update_display(current_sequence)
@@ -135,8 +135,7 @@ class ChannelDialer:
                 return
 
             # Set timer for regular channel processing
-            self.timer = threading.Timer(self.digit_timeout, self._process_channel)
-            self.timer.start()
+            self.timer = start_timer(self.digit_timeout, self._process_channel)
 
     def clear_queue(self):
         """Clear the digit queue and reset cooldown"""
@@ -175,7 +174,7 @@ class ChannelDialer:
         """Show error message briefly then return to current channel"""
         print(f"❌ Invalid channel sequence")
         self._update_display(error_text, is_text=True)
-        time.sleep(1)
+        utils.sleep(1)
         self._update_display(self.current_channel)
 
     def tune_to_channel(self, channel):
@@ -196,7 +195,7 @@ class ChannelDialer:
                 "channel": channel,
                 "valid": is_valid,
                 "fallback_channel": self.current_channel if not is_valid else None,
-                "timestamp": time.time()
+                "timestamp": get_now()
             })
         else:
             print(f"❌ Invalid channel: {channel}")
@@ -209,7 +208,7 @@ class ChannelDialer:
 
         display_text = "UP" if direction > 0 else "Dn"
         self._update_display(display_text, is_text=True)
-        time.sleep(DISPLAY_DELAY)
+        utils.sleep(DISPLAY_DELAY)
 
         # Calculate new channel index
         try:
@@ -227,7 +226,7 @@ class ChannelDialer:
         write_json_to_socket({
             "command": "up" if direction > 0 else "down",
             "channel": self.current_channel,
-            "timestamp": time.time()
+            "timestamp": get_now()
         })
 
     def channel_up(self):
@@ -272,7 +271,7 @@ class ChannelDialer:
             # Then execute the action
             config['action']()
             
-            time.sleep(0.5)
+            utils.sleep(0.5)
             self._update_display(self.current_channel)
             return True
         except Exception as e:
@@ -289,5 +288,5 @@ class ChannelDialer:
         return self.easter_registry.list_easter_eggs()
     
     def get_easter_egg_status(self):
-        """Get detailed status of all Easter eggs"""
+        """Get detailed status of all easter eggs"""
         return self.easter_registry.get_status_info(self)

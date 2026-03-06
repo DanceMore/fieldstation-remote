@@ -27,8 +27,19 @@ def main():
                         help='Print protocol/address/command for unknown signals')
     parser.add_argument('--display-brightness', type=int, default=7, choices=range(8),
                         help='Initial display brightness (0-7)')
+    parser.add_argument('--mock', action='store_true',
+                        help='Use mock serial and avoid physical hardware')
     
     args = parser.parse_args()
+    
+    # Patch serial if mock is requested
+    if args.mock:
+        import os
+        os.environ["MOCK_MODE"] = "true"
+        from mock_serial import MockSerial
+        import serial
+        serial.Serial = MockSerial
+        print("🛠️  Running in MOCK mode (serial.Serial patched)")
     
     # Create and run the IR mapper
     mapper = IRRemoteMapper(args)

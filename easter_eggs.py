@@ -1,10 +1,10 @@
-import time
 import threading
 import random
 from collections import defaultdict
 
 # Import shared utilities
-from utils import safe_execute, send_key_to_mpv
+import utils
+from utils import safe_execute, send_key_to_mpv, get_now, start_timer
 
 class EasterEggCooldownManager:
     """Manages cooldowns, expirations, and automatic cleanup for Easter eggs"""
@@ -26,13 +26,13 @@ class EasterEggCooldownManager:
         """Check if Easter egg can be activated (not in cooldown)"""
         with self.lock:
             last_time = self.last_activation.get(easter_egg_id, 0)
-            time_since_last = time.time() - last_time
+            time_since_last = get_now() - last_time
             return time_since_last >= cooldown_duration
 
     def activate_easter_egg(self, easter_egg_id, cooldown_duration, effect_duration=None, cleanup_callback=None):
         """Activate Easter egg and set up expiration if needed"""
         with self.lock:
-            now = time.time()
+            now = get_now()
             self.last_activation[easter_egg_id] = now
 
             # If this has an expiring effect, set up automatic cleanup
@@ -45,9 +45,8 @@ class EasterEggCooldownManager:
                 self.active_effects[easter_egg_id] = now + effect_duration
 
                 # Set up cleanup timer
-                cleanup_timer = threading.Timer(effect_duration, self._cleanup_effect, 
-                                               args=[easter_egg_id, cleanup_callback])
-                cleanup_timer.start()
+                cleanup_timer = start_timer(effect_duration, self._cleanup_effect, 
+                                           args=[easter_egg_id, cleanup_callback])
                 self.cleanup_timers[easter_egg_id] = cleanup_timer
 
                 print(f"⏰ Effect '{easter_egg_id}' will expire in {effect_duration/60:.1f} minutes")
@@ -75,7 +74,7 @@ class EasterEggCooldownManager:
         """Get time in seconds until Easter egg is available again"""
         with self.lock:
             last_time = self.last_activation.get(easter_egg_id, 0)
-            time_since_last = time.time() - last_time
+            time_since_last = get_now() - last_time
             remaining = cooldown_duration - time_since_last
             return max(0, remaining)
 
@@ -84,7 +83,7 @@ class EasterEggCooldownManager:
         with self.lock:
             if easter_egg_id not in self.active_effects:
                 return 0
-            remaining = self.active_effects[easter_egg_id] - time.time()
+            remaining = self.active_effects[easter_egg_id] - get_now()
             return max(0, remaining)
 
     def force_cleanup(self, easter_egg_id):
@@ -109,14 +108,13 @@ class EasterEggActions:
 
     def __init__(self, dialer):
         self.dialer = dialer
-        # Note: cooldown_manager will be accessed via dialer.cooldown_manager
 
     def emergency_mode(self):
         """911 - Emergency broadcast mode with 30 min duration"""
         try:
             print("🚨 Emergency mode activated")
             self.dialer.display.send_display_command("LED:red-blue 10")
-            time.sleep(0.5)
+            utils.sleep(0.5)
             self.dialer.display.send_display_command("DISP:COPS")
             print("🚨 Emergency LED effects active for 30 minutes")
         except Exception as e:
@@ -155,11 +153,11 @@ class EasterEggActions:
         try:
             send_key_to_mpv('b')
             self.dialer.display.send_display_command("LED:rainbow 60")
-            time.sleep(1)
+            utils.sleep(1)
             self.dialer.display.send_display_command("DISP:RAST")
-            time.sleep(1)
+            utils.sleep(1)
             self.dialer.display.send_display_command("DISP:FARI")
-            time.sleep(1)
+            utils.sleep(1)
             print("🎉 Party effects active for 20 minutes")
         except Exception as e:
             print(f"⚠️ Party mode failed: {e}")
@@ -199,37 +197,37 @@ class EasterEggActions:
         try:
             self.dialer.display.send_display_command("LED:nack")
             self.dialer.display.send_display_command("DISP:404")
-            time.sleep(1.1)
+            utils.sleep(1.1)
             self.dialer.display.send_display_command("LED:nack")
             self.dialer.display.send_display_command("DISP:huh")
-            time.sleep(1.4)
+            utils.sleep(1.4)
             self.dialer.display.send_display_command("LED:nack")
             self.dialer.display.send_display_command("DISP:.404")
-            time.sleep(1)
+            utils.sleep(1)
             self.dialer.display.send_display_command("LED:ack")
             self.dialer.display.send_display_command("DISP:.huh")
-            time.sleep(1.4)
+            utils.sleep(1.4)
             self.dialer.display.send_display_command("LED:nack")
             self.dialer.display.send_display_command("DISP:.404")
-            time.sleep(1.4)
+            utils.sleep(1.4)
             self.dialer.display.send_display_command("LED:nack")
             self.dialer.display.send_display_command("DISP:8888")
             self.dialer.display.send_display_command("LED:nack")
-            time.sleep(0.3)
+            utils.sleep(0.3)
             self.dialer.display.send_display_command("LED:nack")
-            time.sleep(0.3)
+            utils.sleep(0.3)
             self.dialer.display.send_display_command("LED:nack")
-            time.sleep(0.3)
+            utils.sleep(0.3)
             self.dialer.display.send_display_command("LED:nack")
-            time.sleep(0.3)
+            utils.sleep(0.3)
             self.dialer.display.send_display_command("LED:nack")
-            time.sleep(0.3)
+            utils.sleep(0.3)
             self.dialer.display.send_display_command("LED:nack")
-            time.sleep(0.3)
+            utils.sleep(0.3)
             self.dialer.display.send_display_command("LED:nack")
-            time.sleep(0.3)
+            utils.sleep(0.3)
             self.dialer.display.send_display_command("DISP:DUNO")
-            time.sleep(1.3)
+            utils.sleep(1.3)
             print("💥 404 error displayed")
         except Exception as e:
             print(f"⚠️ 404 error display failed: {e}")
@@ -261,9 +259,9 @@ class EasterEggActions:
         try:
             # Show selection with cosmic LED effect
             self.dialer.display.send_display_command("LED:pulse-blue 7")
-            time.sleep(1.3)
+            utils.sleep(1.3)
             self.dialer.display.send_display_command(f"DISP:{selected_object}")
-            time.sleep(4.7)
+            utils.sleep(4.7)
             print(f"🌌 Displaying celestial object: {selected_object}")
         except Exception as e:
             print(f"⚠️ Celestial mode failed: {e}")
@@ -283,11 +281,11 @@ class EasterEggActions:
             # Show thinking animation
             self.dialer.display.send_display_command("LED:thinking 3")
             self.dialer.display.send_display_command("DISP:8888")
-            time.sleep(3)
+            utils.sleep(3)
             # Show the response
             self.dialer.display.send_display_command(f"DISP:{selected_response}")
             print(f"🎱 Magic 8 Ball says: {selected_response}")
-            time.sleep(3)
+            utils.sleep(3)
         except Exception as e:
             print(f"⚠️ Magic 8 Ball failed: {e}")
 
